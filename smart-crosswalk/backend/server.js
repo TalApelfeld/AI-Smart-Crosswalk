@@ -8,6 +8,9 @@ import { notFound, errorHandler } from './middleware/errorMiddleware.js';
 // Load environment variables
 dotenv.config();
 
+dotenv.config();
+console.log('MONGODB_URI:', process.env.MONGODB_URI ? '✅ Found' : '❌ Missing');
+
 // Connect to MongoDB
 connectDB();
 

@@ -1,9 +1,11 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
+import tailwindcss from '@tailwindcss/vite';
 
 export default defineConfig({
   plugins: [
-    react()
+    react(),
+    tailwindcss()
   ],
   server: {
     port: 5173,
@@ -18,5 +20,8 @@ export default defineConfig({
     alias: {
       '@': '/src'
     }
+  },
+  build: {
+    sourcemap: true
   }
 });
