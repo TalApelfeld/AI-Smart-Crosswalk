@@ -8,7 +8,10 @@ export function FilterBar({ filters, onFilterChange, onClear, crosswalks = [] })
     onFilterChange({ ...filters, [filterKey]: value });
   };
 
-  const hasActiveFilters = Object.values(filters).some(v => v && v !== 'all');
+  const hasActiveFilters = 
+    filters.dangerLevel !== 'all' ||
+    (filters.crosswalkSearch && filters.crosswalkSearch.trim() !== '') ||
+    (filters.dateRange?.startDate || filters.dateRange?.endDate);
 
   return (
     <div className="bg-white rounded-xl shadow-sm p-4 mb-6">
