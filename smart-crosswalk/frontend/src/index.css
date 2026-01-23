@@ -185,17 +185,17 @@ h6 {
 
 .badge-warning {
   @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
-         bg-yellow-50 text-yellow-700;
+         bg-yellow-100 text-yellow-800;
 }
 
 .badge-orange {
   @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
-         bg-orange-100 text-orange-800;
+         bg-orange-100 text-orange-900;
 }
 
 .badge-danger {
   @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
-         bg-red-100 text-red-800;
+         bg-red-100 text-red-900;
 }
 
 .badge-primary {

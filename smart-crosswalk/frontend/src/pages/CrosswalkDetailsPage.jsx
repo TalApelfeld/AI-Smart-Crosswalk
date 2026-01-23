@@ -66,8 +66,7 @@ export function CrosswalkDetailsPage() {
   const hasActiveFilters = 
     filters.dateRange.startDate || 
     filters.dateRange.endDate || 
-    filters.dangerLevel !== 'all' || 
-    filters.sortBy !== 'newest';
+    filters.dangerLevel !== 'all';
 
   return (
     <div className="space-y-6">
@@ -159,13 +158,13 @@ export function CrosswalkDetailsPage() {
           </Card>
           <Card>
             <CardContent className="p-4 text-center">
-              <p className="text-3xl font-bold text-yellow-600">{stats.byDangerLevel.MEDIUM || 0}</p>
+              <p className="text-3xl font-bold text-orange-600">{stats.byDangerLevel.MEDIUM || 0}</p>
               <p className="text-sm text-gray-600">Medium Danger</p>
             </CardContent>
           </Card>
           <Card>
             <CardContent className="p-4 text-center">
-              <p className="text-3xl font-bold text-green-600">{stats.byDangerLevel.LOW || 0}</p>
+              <p className="text-3xl font-bold text-yellow-300">{stats.byDangerLevel.LOW || 0}</p>
               <p className="text-sm text-gray-600">Low Danger</p>
             </CardContent>
           </Card>
@@ -197,36 +196,20 @@ export function CrosswalkDetailsPage() {
             />
           </div>
 
-          {/* Danger Level and Sort */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Danger Level
-              </label>
-              <Select
-                value={filters.dangerLevel}
-                onChange={(e) => updateFilters({ dangerLevel: e.target.value })}
-              >
-                <option value="all">All Levels</option>
-                <option value="HIGH">High</option>
-                <option value="MEDIUM">Medium</option>
-                <option value="LOW">Low</option>
-              </Select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Sort By
-              </label>
-              <Select
-                value={filters.sortBy}
-                onChange={(e) => updateFilters({ sortBy: e.target.value })}
-              >
-                <option value="newest">Newest First</option>
-                <option value="oldest">Oldest First</option>
-                <option value="danger">Danger Level</option>
-              </Select>
-            </div>
+          {/* Danger Level */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Danger Level
+            </label>
+            <Select
+              value={filters.dangerLevel}
+              onChange={(e) => updateFilters({ dangerLevel: e.target.value })}
+            >
+              <option value="all">All Levels</option>
+              <option value="HIGH">High</option>
+              <option value="MEDIUM">Medium</option>
+              <option value="LOW">Low</option>
+            </Select>
           </div>
         </CardContent>
       </Card>

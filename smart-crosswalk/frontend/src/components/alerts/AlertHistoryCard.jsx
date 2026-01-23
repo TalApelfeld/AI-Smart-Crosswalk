@@ -14,7 +14,7 @@ export function AlertHistoryCard({ alert, onViewDetails }) {
 
   const dangerConfig = {
     HIGH: { color: 'red', icon: '🚨', label: 'High Danger' },
-    MEDIUM: { color: 'yellow', icon: '🚨', label: 'Medium Danger' },
+    MEDIUM: { color: 'orange', icon: '🚨', label: 'Medium Danger' },
     LOW: { color: 'yellow', icon: '🚨', label: 'Low Danger' }
   };
 

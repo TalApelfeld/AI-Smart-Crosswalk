@@ -5,11 +5,12 @@ export function Select({
   value,
   onChange,
   options = [],
-  placeholder = 'בחר אופציה...',
+  placeholder = 'Select option...',
   error,
   required,
   disabled,
   className,
+  children,
   ...props
 }) {
   return (
@@ -23,7 +24,7 @@ export function Select({
       
       <select
         value={value}
-        onChange={(e) => onChange(e.target.value)}
+        onChange={onChange}
         disabled={disabled}
         className={cn(
           'w-full px-3 py-2 border rounded-lg transition-colors',
@@ -42,7 +43,7 @@ export function Select({
           </option>
         )}
         
-        {options.map((option) => (
+        {children || options.map((option) => (
           <option 
             key={option.value} 
             value={option.value}

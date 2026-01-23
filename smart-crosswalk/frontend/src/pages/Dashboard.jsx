@@ -78,24 +78,12 @@ export function Dashboard() {
       />
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
         <StatsCard
           title="Total Alerts"
           value={alertStats.total}
           icon="📋"
           color="primary"
-        />
-        <StatsCard
-          title="High Danger"
-          value={alertStats.high}
-          icon="🚨"
-          color="danger"
-        />
-        <StatsCard
-          title="Medium Danger"
-          value={alertStats.medium}
-          icon="⚠️"
-          color="warning"
         />
         <StatsCard
           title="Total Crosswalks"
