@@ -21,6 +21,11 @@ export const camerasApi = {
     return api.patch(`/cameras/${id}/status`, { status });
   },
 
+  // Update camera (general)
+  update: async (id, data) => {
+    return api.patch(`/cameras/${id}`, data);
+  },
+
   // Delete camera
   delete: async (id) => {
     return api.delete(`/cameras/${id}`);

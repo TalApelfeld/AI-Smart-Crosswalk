@@ -61,6 +61,46 @@ export function useCrosswalks() {
     }
   }, [fetchCrosswalks, fetchStats]);
 
+  const linkCamera = useCallback(async (id, cameraId) => {
+    try {
+      await crosswalksApi.linkCamera(id, cameraId);
+      await fetchCrosswalks();
+    } catch (err) {
+      setError('Failed to link camera');
+      throw err;
+    }
+  }, [fetchCrosswalks]);
+
+  const unlinkCamera = useCallback(async (id) => {
+    try {
+      await crosswalksApi.unlinkCamera(id);
+      await fetchCrosswalks();
+    } catch (err) {
+      setError('Failed to unlink camera');
+      throw err;
+    }
+  }, [fetchCrosswalks]);
+
+  const linkLED = useCallback(async (id, ledId) => {
+    try {
+      await crosswalksApi.linkLED(id, ledId);
+      await fetchCrosswalks();
+    } catch (err) {
+      setError('Failed to link LED');
+      throw err;
+    }
+  }, [fetchCrosswalks]);
+
+  const unlinkLED = useCallback(async (id) => {
+    try {
+      await crosswalksApi.unlinkLED(id);
+      await fetchCrosswalks();
+    } catch (err) {
+      setError('Failed to unlink LED');
+      throw err;
+    }
+  }, [fetchCrosswalks]);
+
   useEffect(() => {
     fetchCrosswalks();
     fetchStats();
@@ -74,6 +114,10 @@ export function useCrosswalks() {
     refetch: fetchCrosswalks,
     createCrosswalk,
     updateCrosswalk,
-    deleteCrosswalk
+    deleteCrosswalk,
+    linkCamera,
+    unlinkCamera,
+    linkLED,
+    unlinkLED
   };
 }

@@ -4,7 +4,8 @@ import { cn } from '../../utils';
 const colorVariants = {
   primary: 'text-primary-600',
   success: 'text-success-600',
-  warning: 'text-warning-600',
+  warning: 'text-yellow-400',
+  orange: 'text-orange-500',
   danger: 'text-danger-600'
 };
 

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Button } from '../ui';
+import { Button, DateRangePicker } from '../ui';
 
 export function FilterBar({ filters, onFilterChange, onClear, crosswalks = [] }) {
   const [isExpanded, setIsExpanded] = useState(false);
@@ -54,7 +54,46 @@ export function FilterBar({ filters, onFilterChange, onClear, crosswalks = [] })
                   <label className="block text-sm font-medium text-surface-700 mb-2">
                     {config.label}
                   </label>
-                  {key === 'crosswalkId' && crosswalks.length > 0 ? (
+                  {key === 'dateRange' ? (
+                    <DateRangePicker
+                      startDate={value?.startDate}
+                      endDate={value?.endDate}
+                      onChange={(dateRange) => handleChange(key, dateRange)}
+                    />
+                  ) : key === 'crosswalkSearch' ? (
+                    <div className="relative">
+                      <input
+                        type="text"
+                        value={value || ''}
+                        onChange={(e) => handleChange(key, e.target.value)}
+                        placeholder="Search by city, street, or number..."
+                        className="w-full px-3 py-2 pl-9 border border-surface-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm"
+                      />
+                      <svg
+                        className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                        />
+                      </svg>
+                      {value && (
+                        <button
+                          onClick={() => handleChange(key, '')}
+                          className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                          </svg>
+                        </button>
+                      )}
+                    </div>
+                  ) : key === 'crosswalkId' && crosswalks.length > 0 ? (
                     <select
                       value={value || 'all'}
                       onChange={(e) => handleChange(key, e.target.value)}
@@ -101,12 +140,13 @@ function getFilterConfig(key, crosswalks = []) {
         { value: 'HIGH', label: 'High' }
       ]
     },
-    crosswalkId: {
-      label: 'Crosswalk',
-      options: crosswalks.map(cw => ({
-        value: cw._id,
-        label: `${cw.location?.city} - ${cw.location?.street} ${cw.location?.number}`
-      }))
+    dateRange: {
+      label: 'Date Range',
+      type: 'daterange'
+    },
+    crosswalkSearch: {
+      label: 'Search Crosswalk',
+      type: 'search'
     }
   };
 

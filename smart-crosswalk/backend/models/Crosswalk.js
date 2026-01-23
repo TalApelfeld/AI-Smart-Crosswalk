@@ -22,13 +22,15 @@ const crosswalkSchema = new mongoose.Schema({
   cameraId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Camera',
-    required: [true, 'Camera ID is required']
+    required: false,
+    default: null
   },
 
   ledId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'LED',
-    required: [true, 'LED ID is required']
+    required: false,
+    default: null
   }
 
 }, {

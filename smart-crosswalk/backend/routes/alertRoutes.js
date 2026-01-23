@@ -25,19 +25,25 @@ router.post(
   asyncHandler(async (req, res) => {
     const { crosswalkId, dangerLevel, detectionPhoto } = req.body;
 
-    // Validation
-    if (!crosswalkId || !dangerLevel || !detectionPhoto?.url) {
+    // Validation - only crosswalkId and dangerLevel required, photo is optional
+    if (!crosswalkId || !dangerLevel) {
       res.status(400);
-      throw new Error('Missing required fields: crosswalkId, dangerLevel, detectionPhoto.url');
+      throw new Error('Missing required fields: crosswalkId, dangerLevel');
     }
 
-    const alert = await alertService.create({
+    const alertData = {
       crosswalkId,
-      dangerLevel,
-      detectionPhoto: {
+      dangerLevel
+    };
+
+    // Add photo if provided
+    if (detectionPhoto?.url) {
+      alertData.detectionPhoto = {
         url: detectionPhoto.url
-      }
-    });
+      };
+    }
+
+    const alert = await alertService.create(alertData);
 
     res.status(201).json({
       success: true,
@@ -73,6 +79,42 @@ router.get(
     res.json({
       success: true,
       data: alert,
+    });
+  })
+);
+
+// PATCH /api/alerts/:id - Update alert
+router.patch(
+  "/:id",
+  asyncHandler(async (req, res) => {
+    const alert = await alertService.update(req.params.id, req.body);
+
+    if (!alert) {
+      res.status(404);
+      throw new Error("Alert not found");
+    }
+
+    res.json({
+      success: true,
+      data: alert,
+    });
+  })
+);
+
+// DELETE /api/alerts/:id - Delete alert
+router.delete(
+  "/:id",
+  asyncHandler(async (req, res) => {
+    const alert = await alertService.delete(req.params.id);
+
+    if (!alert) {
+      res.status(404);
+      throw new Error("Alert not found");
+    }
+
+    res.json({
+      success: true,
+      message: "Alert deleted successfully",
     });
   })
 );

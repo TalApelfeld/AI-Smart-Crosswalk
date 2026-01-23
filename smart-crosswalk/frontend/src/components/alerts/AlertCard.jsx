@@ -1,13 +1,13 @@
-import { Card, Badge } from '../ui';
+import { Card, Badge, Button } from '../ui';
 import { cn, formatDate } from '../../utils';
 
 const dangerLevelConfig = {
-  LOW: { variant: 'success', border: 'border-l-success-500', label: 'Low', icon: '✅' },
-  MEDIUM: { variant: 'warning', border: 'border-l-warning-500', label: 'Medium', icon: '⚠️' },
+  LOW: { variant: 'warning', border: 'border-l-yellow-400', label: 'Low', icon: '🚨' },
+  MEDIUM: { variant: 'orange', border: 'border-l-orange-500', label: 'Medium', icon: '🚨' },
   HIGH: { variant: 'danger', border: 'border-l-danger-500', label: 'High', icon: '🚨' }
 };
 
-export function AlertCard({ alert }) {
+export function AlertCard({ alert, onEdit, onDelete }) {
   const dangerLevel = dangerLevelConfig[alert.dangerLevel] || dangerLevelConfig.MEDIUM;
 
   return (
@@ -48,6 +48,30 @@ export function AlertCard({ alert }) {
             </div>
           </div>
         </div>
+
+        {/* Action Buttons */}
+        {(onEdit || onDelete) && (
+          <div className="flex gap-2">
+            {onEdit && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => onEdit(alert)}
+              >
+                ✏️ Edit
+              </Button>
+            )}
+            {onDelete && (
+              <Button
+                variant="danger"
+                size="sm"
+                onClick={() => onDelete(alert)}
+              >
+                🗑️ Delete
+              </Button>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Image */}

@@ -22,7 +22,7 @@ const alertSchema = new mongoose.Schema({
   detectionPhoto: {
     url: {
       type: String,
-      required: [true, 'Photo URL is required']
+      required: false
     }
   }
 

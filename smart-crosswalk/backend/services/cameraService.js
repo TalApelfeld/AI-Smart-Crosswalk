@@ -1,4 +1,5 @@
 import { Camera } from '../models/index.js';
+import Crosswalk from '../models/Crosswalk.js';
 
 // Get all cameras
 export const getAllCameras = async () => {
@@ -40,8 +41,29 @@ export const updateCameraStatus = async (id, status) => {
   return camera;
 };
 
+// Update camera (general update)
+export const updateCamera = async (id, data) => {
+  const camera = await Camera.findByIdAndUpdate(
+    id,
+    data,
+    { new: true, runValidators: true }
+  );
+
+  if (!camera) {
+    throw new Error('Camera not found');
+  }
+
+  return camera;
+};
+
 // Delete camera
 export const deleteCamera = async (id) => {
+  // Check if camera is linked to any crosswalk
+  const linkedCrosswalk = await Crosswalk.findOne({ cameraId: id });
+  if (linkedCrosswalk) {
+    throw new Error('Cannot delete camera linked to crosswalk');
+  }
+
   const camera = await Camera.findByIdAndDelete(id);
   if (!camera) {
     throw new Error('Camera not found');

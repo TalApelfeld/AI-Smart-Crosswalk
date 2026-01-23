@@ -185,7 +185,12 @@ h6 {
 
 .badge-warning {
   @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
-         bg-yellow-100 text-yellow-800;
+         bg-yellow-50 text-yellow-700;
+}
+
+.badge-orange {
+  @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+         bg-orange-100 text-orange-800;
 }
 
 .badge-danger {
@@ -201,3 +206,20 @@ h6 {
 .text-balance {
   text-wrap: balance;
 }
+
+/* Toast animations */
+@keyframes slide-in-left {
+  from {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.animate-slide-in-left {
+  animation: slide-in-left 0.3s ease-out;
+}
+
