@@ -10,14 +10,28 @@ export const alertService = {
     if (filters.crosswalkId) query.crosswalkId = filters.crosswalkId;
 
     return Alert.find(query)
-      .populate('crosswalkId', 'location')
+      .populate({
+        path: 'crosswalkId',
+        select: 'location cameraId ledId',
+        populate: [
+          { path: 'cameraId', select: '_id status' },
+          { path: 'ledId', select: '_id' }
+        ]
+      })
       .sort({ timestamp: -1 });
   },
 
   // Get single alert by ID
   async getById(id) {
     return Alert.findById(id)
-      .populate('crosswalkId', 'location');
+      .populate({
+        path: 'crosswalkId',
+        select: 'location cameraId ledId',
+        populate: [
+          { path: 'cameraId', select: '_id status' },
+          { path: 'ledId', select: '_id' }
+        ]
+      });
   },
 
   // Create new alert (immutable event)
@@ -44,7 +58,14 @@ export const alertService = {
       id,
       data,
       { new: true, runValidators: true }
-    ).populate('crosswalkId', 'location');
+    ).populate({
+      path: 'crosswalkId',
+      select: 'location cameraId ledId',
+      populate: [
+        { path: 'cameraId', select: '_id status' },
+        { path: 'ledId', select: '_id' }
+      ]
+    });
 
     return alert;
   },
@@ -90,7 +111,14 @@ export const alertService = {
         .sort(sort)
         .skip(skip)
         .limit(limit)
-        .populate('crosswalkId', 'location'),
+        .populate({
+          path: 'crosswalkId',
+          select: 'location cameraId ledId',
+          populate: [
+            { path: 'cameraId', select: '_id status' },
+            { path: 'ledId', select: '_id' }
+          ]
+        }),
       Alert.countDocuments(query)
     ]);
     
