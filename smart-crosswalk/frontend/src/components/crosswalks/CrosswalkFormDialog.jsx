@@ -57,7 +57,15 @@ export function CrosswalkFormDialog({
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSubmit(formData);
+    
+    // Convert empty strings to null for ObjectId fields
+    const cleanedData = {
+      ...formData,
+      cameraId: formData.cameraId || null,
+      ledId: formData.ledId || null
+    };
+    
+    onSubmit(cleanedData);
   };
 
   const cameraOptions = cameras.map((cam) => ({

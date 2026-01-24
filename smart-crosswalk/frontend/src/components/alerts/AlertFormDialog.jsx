@@ -37,7 +37,14 @@ export function AlertFormDialog({ open, onClose, onSubmit, alert, crosswalks, lo
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSubmit(formData);
+    
+    // Ensure crosswalkId is not an empty string
+    const cleanedData = {
+      ...formData,
+      crosswalkId: formData.crosswalkId || null
+    };
+    
+    onSubmit(cleanedData);
   };
 
   const crosswalkOptions = crosswalks.map((cw) => ({

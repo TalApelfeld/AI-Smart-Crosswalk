@@ -203,7 +203,7 @@ export function CrosswalkDetailsPage() {
             </label>
             <Select
               value={filters.dangerLevel}
-              onChange={(e) => updateFilters({ dangerLevel: e.target.value })}
+              onChange={(value) => updateFilters({ dangerLevel: value })}
             >
               <option value="all">All Levels</option>
               <option value="HIGH">High</option>

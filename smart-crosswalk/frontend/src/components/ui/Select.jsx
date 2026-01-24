@@ -24,7 +24,7 @@ export function Select({
       
       <select
         value={value}
-        onChange={onChange}
+        onChange={(e) => onChange(e.target.value)}
         disabled={disabled}
         className={cn(
           'w-full px-3 py-2 border rounded-lg transition-colors',
