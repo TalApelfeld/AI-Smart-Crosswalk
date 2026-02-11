@@ -1,14 +1,37 @@
-import { Card, Badge } from '../ui';
+import { Card, Badge, Button } from '../ui';
 import { cn, formatDate } from '../../utils';
 
 const dangerLevelConfig = {
-  LOW: { variant: 'success', border: 'border-l-success-500', label: 'Low', icon: '✅' },
-  MEDIUM: { variant: 'warning', border: 'border-l-warning-500', label: 'Medium', icon: '⚠️' },
+  LOW: { variant: 'warning', border: 'border-l-yellow-400', label: 'Low', icon: '🚨' },
+  MEDIUM: { variant: 'orange', border: 'border-l-orange-500', label: 'Medium', icon: '🚨' },
   HIGH: { variant: 'danger', border: 'border-l-danger-500', label: 'High', icon: '🚨' }
 };
 
-export function AlertCard({ alert }) {
+// Helper function to get full image URL
+const getImageUrl = (url) => {
+  if (!url) return null;
+  
+  // If it's already a full URL, return as is
+  if (url.startsWith('http://') || url.startsWith('https://')) {
+    return url;
+  }
+  
+  // If it starts with /uploads, use as is (proxy will handle it)
+  if (url.startsWith('/uploads')) {
+    return url;
+  }
+  
+  // Otherwise, prepend /uploads/alerts if it's just a filename
+  if (!url.startsWith('/')) {
+    return `/uploads/alerts/${url}`;
+  }
+  
+  return url;
+};
+
+export function AlertCard({ alert, onEdit, onDelete }) {
   const dangerLevel = dangerLevelConfig[alert.dangerLevel] || dangerLevelConfig.MEDIUM;
+  const imageUrl = alert.detectionPhoto?.url ? getImageUrl(alert.detectionPhoto.url) : null;
 
   return (
     <Card className={cn('border-l-4', dangerLevel.border)}>
@@ -48,17 +71,45 @@ export function AlertCard({ alert }) {
             </div>
           </div>
         </div>
+
+        {/* Action Buttons */}
+        {(onEdit || onDelete) && (
+          <div className="flex gap-2">
+            {onEdit && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => onEdit(alert)}
+              >
+                ✏️ Edit
+              </Button>
+            )}
+            {onDelete && (
+              <Button
+                variant="danger"
+                size="sm"
+                onClick={() => onDelete(alert)}
+              >
+                🗑️ Delete
+              </Button>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Image */}
-      {alert.detectionPhoto?.url && (
+      {imageUrl && (
         <div className="mt-4">
           <img
-            src={alert.detectionPhoto.url}
+            src={imageUrl}
             alt="Detection"
-            className="rounded-lg max-w-xs shadow-sm"
+            className="rounded-lg max-w-md w-full h-auto shadow-sm object-cover"
             onError={(e) => {
+              console.error('Failed to load image:', imageUrl);
               e.target.style.display = 'none';
+            }}
+            onLoad={() => {
+              console.log('Image loaded successfully:', imageUrl);
             }}
           />
         </div>

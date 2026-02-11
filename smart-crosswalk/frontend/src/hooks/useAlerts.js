@@ -42,6 +42,28 @@ export function useAlerts(options = {}) {
     }
   }, [fetchAlerts, fetchStats]);
 
+  const updateAlert = useCallback(async (id, data) => {
+    try {
+      await alertsApi.update(id, data);
+      await fetchAlerts();
+      await fetchStats();
+    } catch (err) {
+      setError('Failed to update alert');
+      throw err;
+    }
+  }, [fetchAlerts, fetchStats]);
+
+  const deleteAlert = useCallback(async (id) => {
+    try {
+      await alertsApi.delete(id);
+      await fetchAlerts();
+      await fetchStats();
+    } catch (err) {
+      setError('Failed to delete alert');
+      throw err;
+    }
+  }, [fetchAlerts, fetchStats]);
+
   useEffect(() => {
     fetchAlerts();
     fetchStats();
@@ -62,6 +84,8 @@ export function useAlerts(options = {}) {
     loading,
     error,
     refetch: fetchAlerts,
-    createAlert
+    createAlert,
+    updateAlert,
+    deleteAlert
   };
 }

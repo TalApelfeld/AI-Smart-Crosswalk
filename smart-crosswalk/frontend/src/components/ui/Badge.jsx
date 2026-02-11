@@ -5,6 +5,7 @@ const variants = {
   primary: 'badge-primary',
   success: 'badge-success',
   warning: 'badge-warning',
+  orange: 'badge-orange',
   danger: 'badge-danger'
 };
 

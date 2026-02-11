@@ -46,6 +46,16 @@ router.patch('/:id/status', asyncHandler(async (req, res) => {
   });
 }));
 
+// @route   PATCH /api/cameras/:id
+// @desc    Update camera (general)
+router.patch('/:id', asyncHandler(async (req, res) => {
+  const camera = await cameraService.updateCamera(req.params.id, req.body);
+  res.json({
+    success: true,
+    data: camera
+  });
+}));
+
 // @route   DELETE /api/cameras/:id
 // @desc    Delete camera
 router.delete('/:id', asyncHandler(async (req, res) => {

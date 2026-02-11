@@ -16,6 +16,16 @@ export const alertsApi = {
     return api.post('/alerts', data);
   },
 
+  // Update alert
+  update: async (id, data) => {
+    return api.patch(`/alerts/${id}`, data);
+  },
+
+  // Delete alert
+  delete: async (id) => {
+    return api.delete(`/alerts/${id}`);
+  },
+
   // Get statistics
   getStats: async () => {
     return api.get('/alerts/stats');

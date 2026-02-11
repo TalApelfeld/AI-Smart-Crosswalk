@@ -4,7 +4,8 @@ const alertSchema = new mongoose.Schema({
   crosswalkId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Crosswalk',
-    required: [true, 'Crosswalk ID is required']
+    required: false, // Made optional for YOLO detections
+    default: null
   },
 
   timestamp: {
@@ -16,13 +17,14 @@ const alertSchema = new mongoose.Schema({
   dangerLevel: {
     type: String,
     enum: ['LOW', 'MEDIUM', 'HIGH'],
-    required: [true, 'Danger level is required']
+    required: false, // Made optional, will default to MEDIUM
+    default: 'MEDIUM'
   },
 
   detectionPhoto: {
     url: {
       type: String,
-      required: [true, 'Photo URL is required']
+      required: false
     }
   }
 
@@ -32,6 +34,7 @@ const alertSchema = new mongoose.Schema({
 
 // Indexes for better query performance - per specification
 alertSchema.index({ crosswalkId: 1, timestamp: -1 });
+alertSchema.index({ timestamp: -1 }); // For YOLO-only alerts
 
 const Alert = mongoose.model('Alert', alertSchema);
 

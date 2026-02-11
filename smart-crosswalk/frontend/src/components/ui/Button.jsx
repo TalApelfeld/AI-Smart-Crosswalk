@@ -21,6 +21,7 @@ export function Button({
   className,
   disabled,
   loading,
+  fullWidth = false,
   ...props
 }) {
   return (
@@ -30,6 +31,7 @@ export function Button({
         sizes[size],
         disabled && 'opacity-50 cursor-not-allowed',
         loading && 'cursor-wait',
+        fullWidth && 'w-full',
         className
       )}
       disabled={disabled || loading}
