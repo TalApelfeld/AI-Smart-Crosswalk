@@ -116,9 +116,9 @@ export function Dashboard() {
             </div>
             <div className="flex items-center justify-between">
               <span className="text-surface-600">YOLO Detection</span>
-              <span className="flex items-center gap-2 text-surface-400">
-                <span className="h-2 w-2 bg-surface-400 rounded-full"></span>
-                Connected
+              <span className="flex items-center gap-2  text-success-600">
+              <span className="h-2 w-2 bg-success-500 rounded-full animate-pulse"></span>
+              Connected
               </span>
             </div>
           </div>
