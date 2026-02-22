@@ -1,13 +1,17 @@
 import { Card, Spinner } from '../ui';
+import { CameraRowItem } from '../features/devices/CameraRowItem';
+import { LEDRowItem } from '../features/devices/LEDRowItem';
 
 /**
- * GenericTableList Component
+ * GenericTableList Component (Type-Based Pattern)
  * 
  * A generic, reusable table list component for rendering items in a table format.
+ * The component identifies which row component to render based on the type prop.
  * This component is presentation-only and does not handle data fetching or business logic.
  * 
  * @param {Array} items - Array of items to render
- * @param {React.Component} RowComponent - Component to render each row (receives item, index as props)
+ * @param {string} type - Type of items ('camera', 'led')
+ * @param {Object} rowProps - Additional props to pass to each row component
  * @param {Array} columns - Array of column definitions { header, key }
  * @param {Function} keyExtractor - Function to extract unique key from item
  * @param {ReactNode} emptyState - Component to show when list is empty
@@ -16,13 +20,33 @@ import { Card, Spinner } from '../ui';
  */
 export function GenericTableList({ 
   items = [], 
-  RowComponent,
+  type,
+  rowProps = {},
   columns = [],
   keyExtractor = (item) => item._id || item.id,
   emptyState = null,
   loading = false,
   loadingMessage = 'Loading...'
 }) {
+  // Select component based on type
+  let RowComponent;
+  
+  switch(type) {
+    case 'camera':
+      RowComponent = CameraRowItem;
+      break;
+    case 'led':
+      RowComponent = LEDRowItem;
+      break;
+    default:
+      RowComponent = ({ item }) => (
+        <tr>
+          <td colSpan={columns.length} className="p-4 bg-red-100 text-red-800">
+            Unknown type: {type}
+          </td>
+        </tr>
+      );
+  }
   // Show loading state
   if (loading) {
     return (
@@ -67,7 +91,7 @@ export function GenericTableList({
           <tbody className="divide-y divide-surface-100">
             {items.map((item, index) => {
               const key = keyExtractor(item, index);
-              return <RowComponent key={key} item={item} index={index} />;
+              return <RowComponent key={key} item={item} index={index} {...rowProps} />;
             })}
           </tbody>
         </table>

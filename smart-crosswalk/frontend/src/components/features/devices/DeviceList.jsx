@@ -1,12 +1,10 @@
 import { Card, GenericTableList } from '../../ui';
-import { CameraRowItem } from './CameraRowItem';
-import { LEDRowItem } from './LEDRowItem';
 
 /**
- * DeviceList Component
+ * DeviceList Component (Type-Based Pattern)
  * 
  * Displays a list of devices (Cameras or LEDs) in a table format.
- * Uses GenericTableList with specific row components for each device type.
+ * Uses GenericTableList with type-based pattern for row components.
  * 
  * @param {Array} devices - Array of device objects
  * @param {string} type - Type of device ('Camera' or 'LED')
@@ -31,15 +29,19 @@ export function DeviceList({ devices, type, onDelete, onEdit, loading }) {
 
   const columns = type === 'Camera' ? cameraColumns : ledColumns;
   
-  // Select the appropriate row component
-  const RowComponent = type === 'Camera' 
-    ? (props) => <CameraRowItem {...props} onEdit={onEdit} onDelete={onDelete} />
-    : (props) => <LEDRowItem {...props} onDelete={onDelete} />;
+  // Convert type to lowercase for GenericTableList
+  const tableType = type.toLowerCase(); // 'camera' or 'led'
+  
+  // Prepare row props based on device type
+  const rowProps = type === 'Camera' 
+    ? { onEdit, onDelete }
+    : { onDelete };
 
   return (
     <GenericTableList
       items={devices}
-      RowComponent={RowComponent}
+      type={tableType}
+      rowProps={rowProps}
       columns={columns}
       keyExtractor={(device) => device._id}
       loading={loading}
