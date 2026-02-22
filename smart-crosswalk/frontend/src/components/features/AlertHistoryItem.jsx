@@ -1,21 +1,46 @@
 import { memo } from 'react';
-import { AlertHistoryCard } from './AlertHistoryCard';
+import { Badge, GenericDetailCard } from '../ui';
+import { formatDate, formatDangerLevel, formatLocation, formatId, getImageUrl } from '../../utils';
 
-/**
- * AlertHistoryItem Component
- * 
- * Adapter component for AlertHistoryCard to work with GenericList's ItemComponent pattern.
- * This component receives 'item' as a prop and passes it to AlertHistoryCard as 'alert'.
- * Optimized with React.memo to prevent unnecessary re-renders.
- * 
- * @param {Object} item - The alert object
- * @param {Function} onViewDetails - Optional callback when view details is clicked
- */
 function AlertHistoryItemComponent({ item: alert, onViewDetails }) {
-  return <AlertHistoryCard alert={alert} onViewDetails={onViewDetails} />;
+  const dangerLevel = formatDangerLevel(alert.dangerLevel);
+
+  const fields = [
+    { label: 'Danger Level', component: <Badge variant={dangerLevel.variant}>{dangerLevel.label} Danger</Badge> },
+    { label: 'Detected',     value: formatDate(alert.timestamp) },
+    alert.crosswalkId?.location && { label: 'Location', value: formatLocation(alert.crosswalkId.location) },
+    { label: 'Alert ID', value: formatId(alert._id), valueClassName: 'text-gray-500 font-mono ml-2', break: true }
+  ].filter(Boolean);
+
+  const actions = [
+    onViewDetails && { label: 'View Details', onClick: () => onViewDetails(alert) },
+    alert.detectionPhoto?.url && {
+      label: 'Download Image',
+      href: getImageUrl(alert.detectionPhoto.url),
+      target: '_blank',
+      rel: 'noopener noreferrer',
+      variant: 'secondary'
+    }
+  ].filter(Boolean);
+
+  return (
+    <GenericDetailCard
+      header={{
+        icon: dangerLevel.icon,
+        title: `${dangerLevel.label} Danger Alert`,
+        subtitle: formatDate(alert.timestamp)
+      }}
+      image={{
+        url: getImageUrl(alert.detectionPhoto?.url),
+        alt: 'Alert detection',
+        fallbackIcon: '📷'
+      }}
+      fields={fields}
+      actions={actions}
+    />
+  );
 }
 
-// Export memoized version to prevent unnecessary re-renders
 export const AlertHistoryItem = memo(AlertHistoryItemComponent);
 
 

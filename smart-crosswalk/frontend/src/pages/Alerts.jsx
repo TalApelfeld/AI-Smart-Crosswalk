@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { Badge, ConfirmDialog, CRUDPageLayout, useCRUDPage } from '../components/ui';
-import { AlertItem, StatsCard, FilterBar, AlertFormDialog } from '../components/features';
+import { ConfirmDialog, CRUDPageLayout, useCRUDPage } from '../components/ui';
+import { AlertItem, FilterBar, AlertFormDialog } from '../components/features';
 import { useAlerts, useCrosswalks } from '../hooks';
 
 export function Alerts() {
@@ -79,13 +79,11 @@ export function Alerts() {
       <CRUDPageLayout
         title="Alerts"
         description="Monitor all danger detection events"
-        headerActions={
-          <div className="flex gap-3">
-            <Badge variant="danger">{stats.high || 0} High</Badge>
-            <Badge variant="orange">{stats.medium || 0} Medium</Badge>
-            <Badge variant="warning">{stats.low || 0} Low</Badge>
-          </div>
-        }
+        headerBadges={[
+          { label: `${stats.high || 0} High`,   variant: 'danger'  },
+          { label: `${stats.medium || 0} Medium`, variant: 'orange'  },
+          { label: `${stats.low || 0} Low`,     variant: 'warning' },
+        ]}
         createButton={{ text: "Add Alert", onClick: handleCreate }}
         
         items={filteredAlerts}
@@ -93,14 +91,12 @@ export function Alerts() {
         loading={loading}
         error={error}
         
-        statsSection={
-          <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
-            <StatsCard title="Total Alerts" value={stats.total} icon="📋" color="primary" />
-            <StatsCard title="High Danger" value={stats.high} icon="🚨" color="danger" />
-            <StatsCard title="Medium Danger" value={stats.medium} icon="🚨" color="orange" />
-            <StatsCard title="Low Danger" value={stats.low} icon="🚨" color="warning" />
-          </div>
-        }
+        stats={[
+          { title: 'Total Alerts',   value: stats.total,  icon: '📋', color: 'primary' },
+          { title: 'High Danger',   value: stats.high,   icon: '🚨', color: 'danger'  },
+          { title: 'Medium Danger', value: stats.medium, icon: '🚨', color: 'orange'  },
+          { title: 'Low Danger',    value: stats.low,    icon: '🚨', color: 'warning' }
+        ]}
         
         filtersSection={
           <FilterBar

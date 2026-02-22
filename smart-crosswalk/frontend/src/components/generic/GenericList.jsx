@@ -1,31 +1,11 @@
 import { Card, Spinner } from '../ui';
-import { CrosswalkItem } from '../features/CrosswalkItem';
-import { AlertItem } from '../features/AlertItem';
-import { AlertHistoryItem } from '../features/AlertHistoryItem';
-import { CameraRowItem } from '../features/CameraRowItem';
-import { LEDRowItem } from '../features/LEDRowItem';
+import { getComponentForType } from './componentRegistry';
 
-/**
- * Generic List Component (Type-Based Pattern)
- * 
- * A generic, reusable list component that renders items based on type.
- * The component identifies which component to render based on the type prop.
- * This component is presentation-only and does not handle data fetching or business logic.
- * 
- * @param {Array} items - Array of items to render
- * @param {string} type - Type of items ('crosswalk', 'alert', 'alert-history')
- * @param {Object} itemProps - Additional props to pass to each item component
- * @param {Function} keyExtractor - Function to extract unique key from item
- * @param {ReactNode} emptyState - Component to show when list is empty
- * @param {string} wrapperClassName - CSS classes for the wrapper div
- * @param {string} itemWrapperClassName - CSS classes for each item wrapper
- * @param {boolean} loading - Show loading state
- * @param {string} loadingMessage - Message to display while loading
- */
-export function GenericList({ 
-  items = [], 
+export function GenericList({
+  items = [],
   type,
   itemProps = {},
+  columns = [],
   keyExtractor = (item) => item._id || item.id,
   emptyState = null,
   wrapperClassName = 'space-y-4',
@@ -33,29 +13,44 @@ export function GenericList({
   loading = false,
   loadingMessage = 'Loading...'
 }) {
-  // Select component based on type
+  let registryEntry;
   let ItemComponent;
-  
-  switch(type) {
-    case 'crosswalk':
-      ItemComponent = CrosswalkItem;
-      break;
-    case 'alert':
-      ItemComponent = AlertItem;
-      break;
-    case 'alert-history':
-      ItemComponent = AlertHistoryItem;
-      break;
-    default:
-      ItemComponent = ({ item }) => (
-        <div className="p-4 bg-red-100 text-red-800 rounded">
-          Unknown type: {type}
+  let layout;
+
+  try {
+    registryEntry = getComponentForType(type);
+    ItemComponent = registryEntry.component;
+    layout = registryEntry.layout;
+  } catch {
+    layout = 'card';
+    ItemComponent = () => (
+      <Card className="bg-red-50 border-red-200">
+        <div className="p-4 text-red-800">
+          <strong>Error:</strong> Unknown component type "{type}"
+          <br />
+          <small>Please check componentRegistry.js</small>
         </div>
-      );
+      </Card>
+    );
   }
 
-  // Show loading state
+  const isTableLayout = layout === 'row';
+
+  const tableColumns = columns.length > 0
+    ? columns
+    : (registryEntry?.columns || []).map((header) => ({ header, key: header.toLowerCase() }));
+
   if (loading) {
+    if (isTableLayout) {
+      return (
+        <Card>
+          <div className="text-center py-8 text-surface-500">
+            <Spinner size="md" className="mx-auto mb-2" />
+            <p>{loadingMessage}</p>
+          </div>
+        </Card>
+      );
+    }
     return (
       <div className="flex flex-col items-center justify-center py-12">
         <Spinner size="lg" />
@@ -64,29 +59,57 @@ export function GenericList({
     );
   }
 
-  // Show empty state when no items
   if (items.length === 0) {
+    if (isTableLayout && !emptyState) {
+      return (
+        <Card>
+          <div className="text-center py-8 text-surface-500">No items found</div>
+        </Card>
+      );
+    }
     return emptyState;
   }
 
-  // Render list items
+  if (isTableLayout) {
+    return (
+      <Card>
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead>
+              <tr className="border-b border-surface-200">
+                {tableColumns.map((col) => (
+                  <th
+                    key={col.key}
+                    className={`text-left py-3 px-4 text-sm font-medium text-surface-700 ${
+                      col.align === 'right' ? 'text-right' : ''
+                    }`}
+                  >
+                    {col.header}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-surface-100">
+              {items.map((item, index) => {
+                const key = keyExtractor(item, index);
+                const config = registryEntry?.config || {};
+                return <ItemComponent key={key} item={item} index={index} config={config} {...itemProps} />;
+              })}
+            </tbody>
+          </table>
+        </div>
+      </Card>
+    );
+  }
+
   return (
     <div className={wrapperClassName}>
       {items.map((item, index) => {
         const key = keyExtractor(item, index);
-        
         const content = <ItemComponent item={item} index={index} {...itemProps} />;
-
-        // Wrap item if itemWrapperClassName is provided
         if (itemWrapperClassName) {
-          return (
-            <div key={key} className={itemWrapperClassName}>
-              {content}
-            </div>
-          );
+          return <div key={key} className={itemWrapperClassName}>{content}</div>;
         }
-
-        // Return content directly with key
         return <div key={key}>{content}</div>;
       })}
     </div>

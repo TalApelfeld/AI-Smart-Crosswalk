@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Button, DateRangePicker } from '../ui';
+import { Button, Card, Badge, DateRangePicker, Select, Input } from '../ui';
 
 export function FilterBar({ filters, onFilterChange, onClear, crosswalks = [] }) {
   const [isExpanded, setIsExpanded] = useState(false);
@@ -14,15 +14,13 @@ export function FilterBar({ filters, onFilterChange, onClear, crosswalks = [] })
     (filters.dateRange?.startDate || filters.dateRange?.endDate);
 
   return (
-    <div className="bg-white rounded-xl shadow-sm p-4 mb-6">
+    <Card className="!p-4 shadow-sm mb-6">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <span className="text-lg">🔍</span>
           <h3 className="font-semibold text-surface-900">Filters</h3>
           {hasActiveFilters && (
-            <span className="text-xs bg-primary-100 text-primary-700 px-2 py-1 rounded-full">
-              Active
-            </span>
+            <Badge variant="primary">Active</Badge>
           )}
         </div>
         <div className="flex items-center gap-2">
@@ -54,26 +52,24 @@ export function FilterBar({ filters, onFilterChange, onClear, crosswalks = [] })
 
               return (
                 <div key={key}>
-                  <label className="block text-sm font-medium text-surface-700 mb-2">
-                    {config.label}
-                  </label>
                   {key === 'dateRange' ? (
                     <DateRangePicker
+                      label={config.label}
                       startDate={value?.startDate}
                       endDate={value?.endDate}
                       onChange={(dateRange) => handleChange(key, dateRange)}
                     />
                   ) : key === 'crosswalkSearch' ? (
                     <div className="relative">
-                      <input
-                        type="text"
+                      <Input
+                        label={config.label}
                         value={value || ''}
-                        onChange={(e) => handleChange(key, e.target.value)}
+                        onChange={(val) => handleChange(key, val)}
                         placeholder="Search by city, street, or number..."
-                        className="w-full px-3 py-2 pl-9 border border-surface-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm"
+                        className="[&_input]:pl-9"
                       />
                       <svg
-                        className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2"
+                        className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none"
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"
@@ -86,21 +82,23 @@ export function FilterBar({ filters, onFilterChange, onClear, crosswalks = [] })
                         />
                       </svg>
                       {value && (
-                        <button
+                        <Button
+                          variant="ghost"
+                          size="sm"
                           onClick={() => handleChange(key, '')}
-                          className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                          className="absolute right-1 top-1/2 -translate-y-1/2 !p-1 text-gray-400 hover:text-gray-600"
                         >
                           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                           </svg>
-                        </button>
+                        </Button>
                       )}
                     </div>
                   ) : key === 'crosswalkId' && crosswalks.length > 0 ? (
-                    <select
+                    <Select
+                      label={config.label}
                       value={value || 'all'}
-                      onChange={(e) => handleChange(key, e.target.value)}
-                      className="w-full px-3 py-2 border border-surface-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm"
+                      onChange={(val) => handleChange(key, val)}
                     >
                       <option value="all">All Crosswalks</option>
                       {crosswalks.map((cw) => (
@@ -108,12 +106,12 @@ export function FilterBar({ filters, onFilterChange, onClear, crosswalks = [] })
                           {cw.location?.city} - {cw.location?.street} {cw.location?.number}
                         </option>
                       ))}
-                    </select>
+                    </Select>
                   ) : (
-                    <select
+                    <Select
+                      label={config.label}
                       value={value || 'all'}
-                      onChange={(e) => handleChange(key, e.target.value)}
-                      className="w-full px-3 py-2 border border-surface-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm"
+                      onChange={(val) => handleChange(key, val)}
                     >
                       <option value="all">All {config.label}</option>
                       {config.options.map((opt) => (
@@ -121,7 +119,7 @@ export function FilterBar({ filters, onFilterChange, onClear, crosswalks = [] })
                           {opt.label}
                         </option>
                       ))}
-                    </select>
+                    </Select>
                   )}
                 </div>
               );
@@ -129,7 +127,7 @@ export function FilterBar({ filters, onFilterChange, onClear, crosswalks = [] })
           </div>
         </div>
       )}
-    </div>
+    </Card>
   );
 }
 

@@ -1,7 +1,6 @@
 import { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ConfirmDialog, useToast, CRUDPageLayout, useCRUDPage } from '../components/ui';
-import { StatsCard } from '../components/features';
 import { CrosswalkFormDialog, CrosswalkEditDialog, CrosswalkItem } from '../components/features';
 import { useCrosswalks, useCameras, useLEDs } from '../hooks';
 
@@ -25,6 +24,9 @@ export function Crosswalks() {
   const { cameras, createCamera, refetch: refetchCameras } = useCameras();
   const { leds, createLED, refetch: refetchLEDs } = useLEDs();
   const { addToast } = useToast();
+  
+  // State for handling async operations outside of CRUD hooks
+  const [submittingExtra, setSubmitting] = useState(false);
 
   const {
     formDialog,
@@ -166,16 +168,9 @@ export function Crosswalks() {
           );
         }}
         
-        statsSection={
-          <div className="grid grid-cols-1 sm:grid-cols-1 gap-4">
-            <StatsCard
-              title="Total Crosswalks"
-              value={stats.total}
-              icon="🚦"
-              color="primary"
-            />
-          </div>
-        }
+        stats={[
+          { title: 'Total Crosswalks', value: stats.total, icon: '🚦', color: 'primary' }
+        ]}
         
         type="crosswalk"
         itemProps={{ 
@@ -213,7 +208,7 @@ export function Crosswalks() {
         onUnlinkLED={handleUnlinkLED}
         onCreateCamera={handleCreateCamera}
         onCreateLED={handleCreateLED}
-        loading={submitting}
+        loading={submittingExtra}
       />
 
       <ConfirmDialog

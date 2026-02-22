@@ -33,7 +33,7 @@ const PRESETS = [
   { label: 'All Time', getValue: () => ({ startDate: null, endDate: null }) }
 ];
 
-export function DateRangePicker({ startDate, endDate, onChange, maxDate = new Date() }) {
+export function DateRangePicker({ label, startDate, endDate, onChange, maxDate = new Date() }) {
   const [customMode, setCustomMode] = useState(false);
   const [localStart, setLocalStart] = useState(
     startDate ? new Date(startDate).toISOString().split('T')[0] : ''
@@ -64,6 +64,9 @@ export function DateRangePicker({ startDate, endDate, onChange, maxDate = new Da
 
   return (
     <div className="space-y-3">
+      {label && (
+        <label className="text-sm font-medium text-surface-700">{label}</label>
+      )}
       {/* Presets */}
       <div className="flex flex-wrap gap-2">
         {PRESETS.map((preset) => {

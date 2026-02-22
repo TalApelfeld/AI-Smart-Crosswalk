@@ -1,8 +1,12 @@
 import { useState } from 'react';
-import { PageHeader } from '../components/ui';
-import { Card, LoadingScreen, Button } from '../components/ui';
-import { StatsCard } from '../components/features';
+import {
+  PageHeader, ConfirmDialog,
+  Card, CardHeader, CardTitle, CardContent,
+  LoadingScreen, Button,
+  GenericDetailCard, StatusIndicator
+} from '../components/ui';
 import { CameraDialog, LEDDialog, DeviceList } from '../components/features';
+import { StatsGrid } from '../components/generic';
 import { useAlerts, useCrosswalks, useCameras, useLEDs } from '../hooks';
 
 export function Dashboard() {
@@ -15,6 +19,7 @@ export function Dashboard() {
   const [ledDialogOpen, setLEDDialogOpen] = useState(false);
   const [showDevices, setShowDevices] = useState(false);
   const [editingCamera, setEditingCamera] = useState(null);
+  const [confirmDialog, setConfirmDialog] = useState({ open: false, message: '', onConfirm: null });
 
   const handleCreateCamera = async (data) => {
     try {
@@ -46,24 +51,36 @@ export function Dashboard() {
     }
   };
 
-  const handleDeleteCamera = async (id) => {
-    if (window.confirm('Are you sure you want to delete this camera?')) {
-      try {
-        await deleteCamera(id);
-      } catch (err) {
-        console.error('Failed to delete camera:', err);
+  const handleDeleteCamera = (id) => {
+    setConfirmDialog({
+      open: true,
+      message: 'Are you sure you want to delete this camera?',
+      onConfirm: async () => {
+        try {
+          await deleteCamera(id);
+        } catch (err) {
+          console.error('Failed to delete camera:', err);
+        } finally {
+          setConfirmDialog({ open: false, message: '', onConfirm: null });
+        }
       }
-    }
+    });
   };
 
-  const handleDeleteLED = async (id) => {
-    if (window.confirm('Are you sure you want to delete this LED?')) {
-      try {
-        await deleteLED(id);
-      } catch (err) {
-        console.error('Failed to delete LED:', err);
+  const handleDeleteLED = (id) => {
+    setConfirmDialog({
+      open: true,
+      message: 'Are you sure you want to delete this LED?',
+      onConfirm: async () => {
+        try {
+          await deleteLED(id);
+        } catch (err) {
+          console.error('Failed to delete LED:', err);
+        } finally {
+          setConfirmDialog({ open: false, message: '', onConfirm: null });
+        }
       }
-    }
+    });
   };
 
   if (alertsLoading || crosswalksLoading) {
@@ -78,117 +95,88 @@ export function Dashboard() {
       />
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-        <StatsCard
-          title="Total Alerts"
-          value={alertStats.total}
-          icon="📋"
-          color="primary"
-        />
-        <StatsCard
-          title="Total Crosswalks"
-          value={crosswalkStats.total}
-          icon="🚦"
-          color="success"
-        />
-      </div>
+      <StatsGrid stats={[
+        { title: 'Total Alerts',     value: alertStats.total,     icon: '📋', color: 'primary' },
+        { title: 'Total Crosswalks', value: crosswalkStats.total, icon: '🚦', color: 'success' },
+      ]} />
 
       {/* System Status */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card>
-          <h3 className="text-lg font-semibold text-surface-900 mb-4">
-            System Status
-          </h3>
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <span className="text-surface-600">API Server</span>
-              <span className="flex items-center gap-2 text-success-600">
-                <span className="h-2 w-2 bg-success-500 rounded-full animate-pulse"></span>
-                Online
-              </span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-surface-600">Database</span>
-              <span className="flex items-center gap-2 text-success-600">
-                <span className="h-2 w-2 bg-success-500 rounded-full animate-pulse"></span>
-                Connected
-              </span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-surface-600">YOLO Detection</span>
-              <span className="flex items-center gap-2  text-success-600">
-              <span className="h-2 w-2 bg-success-500 rounded-full animate-pulse"></span>
-              Connected
-              </span>
-            </div>
-          </div>
-        </Card>
+        <GenericDetailCard
+          header={{ icon: '🖥', title: 'System Status' }}
+          fields={[
+            { label: 'API Server',     component: <StatusIndicator status="online"    label="Online"    /> },
+            { label: 'Database',       component: <StatusIndicator status="connected" label="Connected" /> },
+            { label: 'YOLO Detection', component: <StatusIndicator status="connected" label="Connected" /> },
+          ]}
+        />
 
         <Card>
-          <h3 className="text-lg font-semibold text-surface-900 mb-4">
-            Quick Actions
-          </h3>
+          <CardHeader><CardTitle>⚡ Quick Actions</CardTitle></CardHeader>
+          <CardContent>
           <div className="grid grid-cols-2 gap-3">
-            <button
+            <Button
+              variant="secondary"
               onClick={() => setCameraDialogOpen(true)}
-              className="p-4 bg-primary-50 rounded-lg hover:bg-primary-100 transition-colors text-center border-2 border-primary-200"
+              className="flex flex-col items-center gap-1 p-4 h-auto border-2 border-primary-200 bg-primary-50 hover:bg-primary-100 text-primary-700"
             >
-              <span className="text-2xl block mb-1">📷</span>
-              <span className="text-sm font-medium text-primary-700">Add Camera</span>
-            </button>
-            <button
+              <span className="text-2xl">📷</span>
+              <span className="text-sm font-medium">Add Camera</span>
+            </Button>
+            <Button
+              variant="secondary"
               onClick={() => setLEDDialogOpen(true)}
-              className="p-4 bg-success-50 rounded-lg hover:bg-success-100 transition-colors text-center border-2 border-success-200"
+              className="flex flex-col items-center gap-1 p-4 h-auto border-2 border-success-200 bg-success-50 hover:bg-success-100 text-success-700"
             >
-              <span className="text-2xl block mb-1">💡</span>
-              <span className="text-sm font-medium text-success-700">Add LED</span>
-            </button>
-            <button
+              <span className="text-2xl">💡</span>
+              <span className="text-sm font-medium">Add LED</span>
+            </Button>
+            <Button
+              variant="ghost"
               onClick={() => setShowDevices(!showDevices)}
-              className="p-4 bg-surface-50 rounded-lg hover:bg-surface-100 transition-colors text-center col-span-2"
+              className="flex flex-col items-center gap-1 p-4 h-auto col-span-2"
             >
-              <span className="text-2xl block mb-1">📋</span>
-              <span className="text-sm text-surface-600">
-                {showDevices ? 'Hide Devices' : 'Manage Devices'}
-              </span>
-            </button>
+              <span className="text-2xl">📋</span>
+              <span className="text-sm text-surface-600">{showDevices ? 'Hide Devices' : 'Manage Devices'}</span>
+            </Button>
           </div>
+          </CardContent>
         </Card>
       </div>
 
       {/* Device Management */}
       {showDevices && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div>
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-surface-900">Cameras</h3>
-              <Button onClick={() => setCameraDialogOpen(true)} size="sm">
-                + Add Camera
-              </Button>
-            </div>
-            <DeviceList
-              devices={cameras}
-              type="Camera"
-              onDelete={handleDeleteCamera}
-              onEdit={handleEditCamera}
-              loading={camerasLoading}
-            />
-          </div>
+          <Card>
+            <CardHeader className="flex items-center justify-between">
+              <CardTitle>📷 Cameras</CardTitle>
+              <Button onClick={() => setCameraDialogOpen(true)} size="sm">+ Add Camera</Button>
+            </CardHeader>
+            <CardContent>
+              <DeviceList
+                devices={cameras}
+                type="Camera"
+                onDelete={handleDeleteCamera}
+                onEdit={handleEditCamera}
+                loading={camerasLoading}
+              />
+            </CardContent>
+          </Card>
 
-          <div>
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-surface-900">LED Systems</h3>
-              <Button onClick={() => setLEDDialogOpen(true)} size="sm">
-                + Add LED
-              </Button>
-            </div>
-            <DeviceList
-              devices={leds}
-              type="LED"
-              onDelete={handleDeleteLED}
-              loading={ledsLoading}
-            />
-          </div>
+          <Card>
+            <CardHeader className="flex items-center justify-between">
+              <CardTitle>💡 LED Systems</CardTitle>
+              <Button onClick={() => setLEDDialogOpen(true)} size="sm">+ Add LED</Button>
+            </CardHeader>
+            <CardContent>
+              <DeviceList
+                devices={leds}
+                type="LED"
+                onDelete={handleDeleteLED}
+                loading={ledsLoading}
+              />
+            </CardContent>
+          </Card>
         </div>
       )}
 
@@ -207,6 +195,17 @@ export function Dashboard() {
         isOpen={ledDialogOpen}
         onClose={() => setLEDDialogOpen(false)}
         onSubmit={handleCreateLED}
+      />
+
+      <ConfirmDialog
+        open={confirmDialog.open}
+        onClose={() => setConfirmDialog({ open: false, message: '', onConfirm: null })}
+        onConfirm={confirmDialog.onConfirm}
+        title="Confirm Delete"
+        message={confirmDialog.message}
+        confirmText="Delete"
+        cancelText="Cancel"
+        variant="danger"
       />
     </div>
   );

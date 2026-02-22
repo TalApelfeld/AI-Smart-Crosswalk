@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { PageHeader } from '../ui';
-import { LoadingScreen, Button } from '../ui';
+import { PageHeader, LoadingScreen, Button, Card, CardTitle, CardDescription, Input, Badge } from '../ui';
 import { GenericList } from './GenericList';
+import { StatsGrid } from './StatsGrid';
+import { GenericDetailCard } from './GenericDetailCard';
 
 /**
  * CRUDPageLayout Component (Type-Based Pattern)
@@ -25,7 +26,10 @@ import { GenericList } from './GenericList';
  * @param {boolean} searchEnabled - Enable search functionality
  * @param {string} searchPlaceholder - Search input placeholder
  * @param {Function} onSearch - Custom search function (item, query) => boolean
- * @param {ReactNode} statsSection - Stats cards section
+ * @param {Array}    stats        - Stats descriptors [{ title, value, icon, color }]; renders a StatsCard grid
+ * @param {number}   statsCols    - Grid column count for stats (default: stats.length)
+ * @param {ReactNode} statsSection - Raw JSX fallback for stats (legacy)
+ * @param {Array}    headerBadges - Badge descriptors [{ label, variant }] shown alongside create button
  * @param {ReactNode} filtersSection - Filters section
  * @param {string} type - Type of items ('crosswalk', 'alert', 'alert-history')
  * @param {Object} itemProps - Additional props to pass to each item component
@@ -48,6 +52,9 @@ export function CRUDPageLayout({
   searchPlaceholder = 'Search...',
   onSearch,
   statsSection,
+  stats,
+  statsCols,
+  headerBadges,
   filtersSection,
   type,
   itemProps = {},
@@ -71,29 +78,22 @@ export function CRUDPageLayout({
 
   if (error) {
     return (
-      <div className="text-center py-12">
-        <p className="text-danger-600">{error}</p>
-      </div>
+      <GenericDetailCard
+        header={{ icon: '⚠️', title: 'Error' }}
+        fields={[{ value: error, valueClassName: 'text-danger-600' }]}
+      />
     );
   }
 
   const defaultEmptyState = (
-    <div className="text-center py-16 bg-white rounded-xl shadow">
-      <span className="text-5xl mb-4 block">{emptyIcon}</span>
-      <h3 className="text-xl font-semibold text-surface-900">
-        {searchQuery ? `No Matching ${title}` : emptyTitle}
-      </h3>
-      <p className="text-surface-500 mt-2">
-        {searchQuery 
-          ? 'Try a different search term.'
-          : emptyMessage}
-      </p>
-      {searchQuery && (
-        <Button onClick={() => setSearchQuery('')} className="mt-4" variant="outline">
-          Clear Search
-        </Button>
-      )}
-    </div>
+    <GenericDetailCard
+      header={{ icon: emptyIcon, title: searchQuery ? `No Matching ${title}` : emptyTitle }}
+      fields={[{
+        value: searchQuery ? 'Try a different search term.' : emptyMessage,
+        valueClassName: 'text-surface-500'
+      }]}
+      actions={searchQuery ? [{ label: 'Clear Search', variant: 'secondary', onClick: () => setSearchQuery('') }] : []}
+    />
   );
 
   return (
@@ -103,62 +103,65 @@ export function CRUDPageLayout({
         title={title}
         description={description}
         actions={
-          headerActions || (createButton && (
-            <Button variant="primary" onClick={createButton.onClick}>
-              ➕ {createButton.text}
-            </Button>
-          ))
+          headerActions || (
+            (headerBadges?.length || createButton) ? (
+              <div className="flex items-center gap-3">
+                {headerBadges?.map((b, i) => <Badge key={i} variant={b.variant}>{b.label}</Badge>)}
+                {createButton && (
+                  <Button variant="primary" onClick={createButton.onClick}>
+                    ➕ {createButton.text}
+                  </Button>
+                )}
+              </div>
+            ) : null
+          )
         }
       />
 
       {/* Stats Section */}
-      {statsSection && statsSection}
+      {stats?.length > 0 && <StatsGrid stats={stats} cols={statsCols} />}
+      {!stats && statsSection}
 
       {/* Search Bar */}
       {searchEnabled && (
-        <div className="bg-white rounded-xl shadow-sm p-4">
+        <Card className="!p-4 shadow-sm">
           <div className="flex items-center gap-3 mb-3">
-            <span className="text-lg">🔍</span>
-            <h3 className="font-semibold text-gray-900">Search & Filter</h3>
+            <CardTitle>🔍 Search & Filter</CardTitle>
           </div>
           <div className="relative">
-            <input
-              type="text"
+            <Input
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(val) => setSearchQuery(val)}
               placeholder={searchPlaceholder}
-              className="w-full px-4 py-2 pl-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="[&_input]:pl-10"
             />
             <svg
-              className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2"
+              className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-              />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
             {searchQuery && (
-              <button
+              <Button
+                variant="ghost"
+                size="sm"
                 onClick={() => setSearchQuery('')}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                className="absolute right-1 top-1/2 -translate-y-1/2 !p-1 text-gray-400 hover:text-gray-600"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 </svg>
-              </button>
+              </Button>
             )}
           </div>
           {searchQuery && allItems && (
-            <p className="text-sm text-gray-600 mt-2">
+            <CardDescription className="mt-2">
               Found {filteredItems.length} of {allItems.length} {title.toLowerCase()}
-            </p>
+            </CardDescription>
           )}
-        </div>
+        </Card>
       )}
 
       {/* Filters Section */}

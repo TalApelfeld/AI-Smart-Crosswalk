@@ -4,32 +4,46 @@ import {
   DialogTitle,
   DialogContent,
   DialogFooter,
-  Button
+  Button,
+  Input,
+  Select
 } from '../ui';
+
+// Resolve dot-notation key (e.g. 'location.city') against an object
+const getNestedValue = (obj, key) =>
+  key.split('.').reduce((acc, k) => acc?.[k], obj) ?? '';
 
 /**
  * GenericFormDialog Component
- * 
- * A reusable dialog component for forms with consistent layout and behavior.
- * Handles form submission, loading states, and cancel actions.
- * 
- * @param {boolean} open - Controls dialog visibility
- * @param {Function} onClose - Callback when dialog should close
- * @param {Function} onSubmit - Callback when form is submitted (receives event)
- * @param {string} title - Dialog title
- * @param {ReactNode} children - Form fields content
- * @param {boolean} loading - Whether form is in loading state
- * @param {string} submitText - Text for submit button (default: 'Submit')
- * @param {string} cancelText - Text for cancel button (default: 'Cancel')
- * @param {string} maxWidth - Dialog max width class (default: 'max-w-md')
- * @param {boolean} isEdit - Whether this is an edit form (affects submit button text)
+ *
+ * Renders a form dialog from declarative section + field descriptors.
+ *
+ * sections: [{
+ *   title: string,
+ *   fields: [{
+ *     type: 'input' | 'select',
+ *     label: string,
+ *     key: string,          // dot-notation path into formData
+ *     placeholder: string,
+ *     required: boolean,
+ *     options: [],          // select only
+ *     hint: string          // optional helper text
+ *   }]
+ * }]
+ *
+ * Pass formData + onFieldChange(key, value) for field-descriptor mode.
+ * Pass children for freeform content (backward compat).
  */
 export function GenericFormDialog({
   open,
   onClose,
   onSubmit,
   title,
+  description,
   children,
+  sections,
+  formData,
+  onFieldChange,
   loading = false,
   submitText,
   cancelText = 'Cancel',
@@ -37,6 +51,35 @@ export function GenericFormDialog({
   isEdit = false
 }) {
   const defaultSubmitText = isEdit ? 'Save Changes' : 'Submit';
+
+  const renderField = (field, j) => (
+    <div key={j}>
+      {field.type === 'select' ? (
+        <Select
+          label={field.label}
+          value={getNestedValue(formData, field.key)}
+          onChange={(value) => onFieldChange?.(field.key, value)}
+          options={field.options || []}
+          placeholder={field.placeholder}
+          required={field.required}
+          disabled={field.disabled}
+        />
+      ) : (
+        <Input
+          label={field.label}
+          type={field.inputType || 'text'}
+          value={getNestedValue(formData, field.key)}
+          onChange={(value) => onFieldChange?.(field.key, value)}
+          placeholder={field.placeholder}
+          required={field.required}
+          disabled={field.disabled}
+        />
+      )}
+      {field.hint && (
+        <p className="text-xs text-surface-500 mt-1">{field.hint}</p>
+      )}
+    </div>
+  );
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth={maxWidth}>
@@ -46,23 +89,32 @@ export function GenericFormDialog({
         </DialogHeader>
 
         <DialogContent>
-          {children}
+          {description && (
+            <p className="text-sm text-surface-600 mb-4">{description}</p>
+          )}
+          {sections?.length > 0 ? (
+            <div className="space-y-6">
+              {sections.map((section, i) => (
+                <div key={i}>
+                  {section.title && (
+                    <h4 className="text-lg font-semibold text-surface-900 mb-3">{section.title}</h4>
+                  )}
+                  {section.fields ? (
+                    <div className="space-y-3">
+                      {section.fields.map(renderField)}
+                    </div>
+                  ) : section.content}
+                </div>
+              ))}
+            </div>
+          ) : children}
         </DialogContent>
 
         <DialogFooter>
-          <Button
-            type="button"
-            variant="ghost"
-            onClick={onClose}
-            disabled={loading}
-          >
+          <Button type="button" variant="ghost" onClick={onClose} disabled={loading}>
             {cancelText}
           </Button>
-          <Button
-            type="submit"
-            variant="primary"
-            loading={loading}
-          >
+          <Button type="submit" variant="primary" loading={loading}>
             {submitText || defaultSubmitText}
           </Button>
         </DialogFooter>

@@ -1,21 +1,20 @@
-import { useState } from 'react';
-import { GenericFormDialog, Select } from '../ui';
+import { useState, useEffect } from 'react';
+import { GenericFormDialog } from '../ui';
 
 export function CameraDialog({ isOpen, onClose, onSubmit, mode = 'create', camera = null }) {
-  const [formData, setFormData] = useState({
-    status: camera?.status || 'active'
-  });
+  const [formData, setFormData] = useState({ status: 'active' });
+
+  useEffect(() => {
+    setFormData({ status: camera?.status || 'active' });
+  }, [camera, isOpen]);
+
+  const handleFieldChange = (key, value) =>
+    setFormData(prev => ({ ...prev, [key]: value }));
 
   const handleSubmit = (e) => {
     e.preventDefault();
     onSubmit(formData);
   };
-
-  const statusOptions = [
-    { value: 'active', label: 'Active' },
-    { value: 'inactive', label: 'Inactive' },
-    { value: 'error', label: 'Error' }
-  ];
 
   return (
     <GenericFormDialog
@@ -25,15 +24,20 @@ export function CameraDialog({ isOpen, onClose, onSubmit, mode = 'create', camer
       title={mode === 'create' ? 'Add New Camera' : 'Edit Camera'}
       isEdit={mode === 'edit'}
       submitText={mode === 'create' ? 'Create Camera' : 'Update Camera'}
-    >
-      <Select
-        label="Status"
-        value={formData.status}
-        onChange={(value) => setFormData({ ...formData, status: value })}
-        options={statusOptions}
-        required
-      />
-    </GenericFormDialog>
+      formData={formData}
+      onFieldChange={handleFieldChange}
+      sections={[{
+        fields: [
+          { type: 'select', label: 'Status', key: 'status', required: true,
+            options: [
+              { value: 'active',   label: 'Active'   },
+              { value: 'inactive', label: 'Inactive' },
+              { value: 'error',    label: 'Error'    }
+            ]
+          }
+        ]
+      }]}
+    />
   );
 }
 

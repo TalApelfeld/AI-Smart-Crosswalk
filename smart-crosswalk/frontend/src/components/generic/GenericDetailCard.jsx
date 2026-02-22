@@ -2,10 +2,25 @@ export function GenericDetailCard({
   header,
   image,
   fields = [],
-  actions = []
+  actions = [],
+  onClick,
+  className = ''
 }) {
+  const cardClass = `bg-white rounded-lg border border-gray-200 hover:shadow-md transition-shadow ${
+    onClick ? 'cursor-pointer' : ''
+  } ${className}`;
+
+  const variantClass = (variant) => {
+    switch (variant) {
+      case 'danger':   return 'px-4 py-2 text-sm bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors disabled:opacity-50';
+      case 'ghost':    return 'px-4 py-2 text-sm bg-transparent text-gray-700 rounded-lg hover:bg-gray-100 transition-colors disabled:opacity-50';
+      case 'secondary': return 'px-4 py-2 text-sm bg-white text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50';
+      default:         return 'px-4 py-2 text-sm bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors disabled:opacity-50';
+    }
+  };
+
   return (
-    <div className="bg-white rounded-lg border border-gray-200 hover:shadow-md transition-shadow">
+    <div className={cardClass} onClick={onClick}>
       {/* Header */}
       {header && (
         <div className="px-4 py-3 border-b border-gray-200 flex items-center justify-between">
@@ -67,7 +82,7 @@ export function GenericDetailCard({
 
         {/* Actions */}
         {actions.length > 0 && (
-          <div className="mt-4 flex gap-2">
+          <div className="mt-4 flex gap-2" onClick={(e) => onClick && e.stopPropagation()}>
             {actions.map((action, index) => {
               if (action.href) {
                 return (
@@ -76,27 +91,19 @@ export function GenericDetailCard({
                     href={action.href}
                     target={action.target}
                     rel={action.rel}
-                    className={
-                      action.variant === 'secondary'
-                        ? 'px-4 py-2 text-sm bg-white text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors'
-                        : 'px-4 py-2 text-sm bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors'
-                    }
+                    className={variantClass(action.variant)}
                   >
                     {action.label}
                   </a>
                 );
               }
-              
+
               return (
                 <button
                   key={index}
                   onClick={action.onClick}
                   disabled={action.disabled}
-                  className={
-                    action.variant === 'secondary'
-                      ? 'px-4 py-2 text-sm bg-white text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed'
-                      : 'px-4 py-2 text-sm bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed'
-                  }
+                  className={variantClass(action.variant)}
                 >
                   {action.label}
                 </button>

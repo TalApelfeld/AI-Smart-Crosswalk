@@ -13,11 +13,8 @@ export function LEDDialog({ isOpen, onClose, onSubmit }) {
       onSubmit={handleSubmit}
       title="Add New LED System"
       submitText="Create LED System"
-    >
-      <div className="text-sm text-surface-600">
-        A new LED system will be created and ready to be linked to a crosswalk.
-      </div>
-    </GenericFormDialog>
+      description="A new LED system will be created and ready to be linked to a crosswalk."
+    />
   );
 }
 

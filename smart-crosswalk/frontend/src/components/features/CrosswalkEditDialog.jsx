@@ -6,9 +6,12 @@ import {
   DialogContent,
   DialogFooter,
   Button,
+  Badge,
   Select,
   Input
 } from '../ui';
+import { GenericDetailCard } from '../generic';
+import { formatId, formatLocation, formatStatus } from '../../utils';
 
 export function CrosswalkEditDialog({ 
   open, 
@@ -76,12 +79,12 @@ export function CrosswalkEditDialog({
 
   const cameraOptions = cameras.map((cam) => ({
     value: cam._id,
-    label: `Camera ${cam._id.slice(-6)} - ${cam.status}`
+    label: `Camera ${formatId(cam._id)} - ${cam.status}`
   }));
 
   const ledOptions = leds.map((led) => ({
     value: led._id,
-    label: `LED ${led._id.slice(-6)}`
+    label: `LED ${formatId(led._id)}`
   }));
 
   const tabs = [
@@ -103,17 +106,18 @@ export function CrosswalkEditDialog({
         {/* Tabs */}
         <div className="flex border-b border-surface-200 mb-6">
           {tabs.map((tab) => (
-            <button
+            <Button
               key={tab.id}
+              variant="ghost"
               onClick={() => setActiveTab(tab.id)}
-              className={`px-4 py-2 font-medium transition-colors border-b-2 ${
+              className={`rounded-none border-b-2 font-medium transition-colors ${
                 activeTab === tab.id
                   ? 'border-primary-500 text-primary-600'
                   : 'border-transparent text-surface-500 hover:text-surface-700'
               }`}
             >
               {tab.label}
-            </button>
+            </Button>
           ))}
         </div>
 
@@ -155,23 +159,26 @@ export function CrosswalkEditDialog({
             <h4 className="text-md font-semibold text-surface-900">📷 Camera Management</h4>
             
             {crosswalk.cameraId && (
-              <div className="p-4 bg-primary-50 rounded-lg border border-primary-200">
-                <p className="text-sm font-medium text-primary-900">
-                  Linked Camera: Camera {crosswalk.cameraId._id.slice(-6)}
-                </p>
-                <p className="text-xs text-primary-700 mt-1">
-                  Status: {crosswalk.cameraId.status}
-                </p>
-                <Button
-                  variant="danger"
-                  size="sm"
-                  onClick={handleUnlinkCamera}
-                  loading={loading}
-                  className="mt-3"
-                >
-                  🔗 Unlink
-                </Button>
-              </div>
+              <GenericDetailCard
+                header={{
+                  icon: '📷',
+                  title: `Camera ${formatId(crosswalk.cameraId._id)}`,
+                  subtitle: 'Linked'
+                }}
+                fields={[
+                  {
+                    label: 'Status',
+                    component: (
+                      <Badge variant={formatStatus(crosswalk.cameraId.status).variant}>
+                        {formatStatus(crosswalk.cameraId.status).text}
+                      </Badge>
+                    )
+                  }
+                ]}
+                actions={[
+                  { label: '🔗 Unlink', onClick: handleUnlinkCamera, variant: 'danger', disabled: loading }
+                ]}
+              />
             )}
 
             <Select
@@ -207,20 +214,16 @@ export function CrosswalkEditDialog({
             <h4 className="text-md font-semibold text-surface-900">💡 LED Management</h4>
             
             {crosswalk.ledId && (
-              <div className="p-4 bg-primary-50 rounded-lg border border-primary-200">
-                <p className="text-sm font-medium text-primary-900">
-                  Linked LED: LED {crosswalk.ledId._id.slice(-6)}
-                </p>
-                <Button
-                  variant="danger"
-                  size="sm"
-                  onClick={handleUnlinkLED}
-                  loading={loading}
-                  className="mt-3"
-                >
-                  🔗 Unlink
-                </Button>
-              </div>
+              <GenericDetailCard
+                header={{
+                  icon: '💡',
+                  title: `LED ${formatId(crosswalk.ledId._id)}`,
+                  subtitle: 'Linked'
+                }}
+                actions={[
+                  { label: '🔗 Unlink', onClick: handleUnlinkLED, variant: 'danger', disabled: loading }
+                ]}
+              />
             )}
 
             <Select

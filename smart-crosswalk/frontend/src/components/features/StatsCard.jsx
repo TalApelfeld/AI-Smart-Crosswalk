@@ -9,6 +9,15 @@ const colorVariants = {
   danger: 'text-danger-600'
 };
 
+/**
+ * StatsCard Component - Config-driven statistics display
+ * 
+ * @param {string} title - Card title
+ * @param {string|number} value - Main statistic value
+ * @param {string} icon - Emoji or icon
+ * @param {string} color - Color variant (primary|success|warning|orange|danger)
+ * @param {string} description - Optional description text
+ */
 export function StatsCard({ title, value, icon, color = 'primary', description }) {
   return (
     <Card className="relative overflow-hidden">

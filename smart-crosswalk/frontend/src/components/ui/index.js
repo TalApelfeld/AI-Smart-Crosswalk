@@ -11,7 +11,8 @@ export { ToastProvider, useToast } from './Toast';
 export { DateRangePicker } from './DateRangePicker';
 export { Navbar } from './Navbar';
 export { PageHeader } from './PageHeader';
+export { StatusIndicator } from './StatusIndicator';
 
 // Re-export generic components
-export { GenericList, GenericTableList, CRUDPageLayout, GenericDetailCard, GenericFormDialog, useCRUDPage } from '../generic';
+export { GenericList, CRUDPageLayout, GenericDetailCard, GenericFormDialog, StatsGrid, useCRUDPage } from '../generic';
 

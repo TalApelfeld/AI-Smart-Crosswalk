@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { GenericFormDialog, Select, Input } from '../ui';
+import { GenericFormDialog } from '../ui';
+import { formatId } from '../../utils';
 
 export function CrosswalkFormDialog({ 
   open, 
@@ -13,11 +14,7 @@ export function CrosswalkFormDialog({
   const isEdit = Boolean(crosswalk);
   
   const [formData, setFormData] = useState({
-    location: {
-      city: '',
-      street: '',
-      number: ''
-    },
+    location: { city: '', street: '', number: '' },
     cameraId: '',
     ledId: ''
   });
@@ -34,38 +31,35 @@ export function CrosswalkFormDialog({
         ledId: crosswalk.ledId?._id || ''
       });
     } else {
-      setFormData({
-        location: {
-          city: '',
-          street: '',
-          number: ''
-        },
-        cameraId: '',
-        ledId: ''
-      });
+      setFormData({ location: { city: '', street: '', number: '' }, cameraId: '', ledId: '' });
     }
   }, [crosswalk, open]);
 
+  const handleFieldChange = (key, value) => {
+    const parts = key.split('.');
+    if (parts.length === 1) {
+      setFormData(prev => ({ ...prev, [key]: value }));
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        [parts[0]]: { ...prev[parts[0]], [parts[1]]: value }
+      }));
+    }
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
-    
-    const cleanedData = {
-      ...formData,
-      cameraId: formData.cameraId || null,
-      ledId: formData.ledId || null
-    };
-    
-    onSubmit(cleanedData);
+    onSubmit({ ...formData, cameraId: formData.cameraId || null, ledId: formData.ledId || null });
   };
 
   const cameraOptions = cameras.map((cam) => ({
     value: cam._id,
-    label: `Camera ${cam._id.slice(-6)} - ${cam.status}`
+    label: `Camera ${formatId(cam._id)} - ${cam.status}`
   }));
 
   const ledOptions = leds.map((led) => ({
     value: led._id,
-    label: `LED ${led._id.slice(-6)}`
+    label: `LED ${formatId(led._id)}`
   }));
 
   return (
@@ -78,73 +72,33 @@ export function CrosswalkFormDialog({
       isEdit={isEdit}
       submitText={isEdit ? 'Save Changes' : 'Add Crosswalk'}
       maxWidth="max-w-2xl"
-    >
-      <div className="space-y-6">
-        <div>
-          <h4 className="text-lg font-semibold text-surface-900 mb-3">📍 Location Details</h4>
-          <div className="space-y-3">
-            <Input
-              label="City"
-              value={formData.location.city}
-              onChange={(value) => setFormData({
-                ...formData,
-                location: { ...formData.location, city: value }
-              })}
-              placeholder="Tel Aviv"
-              required
-            />
-            <Input
-              label="Street"
-              value={formData.location.street}
-              onChange={(value) => setFormData({
-                ...formData,
-                location: { ...formData.location, street: value }
-              })}
-              placeholder="Dizengoff"
-              required
-            />
-            <Input
-              label="Number"
-              value={formData.location.number}
-              onChange={(value) => setFormData({
-                ...formData,
-                location: { ...formData.location, number: value }
-              })}
-              placeholder="50"
-              required
-            />
-          </div>
-        </div>
-
-        <div>
-          <h4 className="text-lg font-semibold text-surface-900 mb-3">📷 Camera</h4>
-          <Select
-            label="Select Camera"
-            value={formData.cameraId}
-            onChange={(value) => setFormData({ ...formData, cameraId: value })}
-            options={cameraOptions}
-            placeholder="Select camera..."
-          />
-          <p className="text-xs text-surface-500 mt-1">
-            You can assign a camera after creating the crosswalk
-          </p>
-        </div>
-
-        <div>
-          <h4 className="text-lg font-semibold text-surface-900 mb-3">💡 LED Lighting</h4>
-          <Select
-            label="Select LED"
-            value={formData.ledId}
-            onChange={(value) => setFormData({ ...formData, ledId: value })}
-            options={ledOptions}
-            placeholder="Select LED..."
-          />
-          <p className="text-xs text-surface-500 mt-1">
-            You can assign an LED after creating the crosswalk
-          </p>
-        </div>
-      </div>
-    </GenericFormDialog>
+      formData={formData}
+      onFieldChange={handleFieldChange}
+      sections={[
+        {
+          title: '📍 Location Details',
+          fields: [
+            { type: 'input',  label: 'City',   key: 'location.city',   placeholder: 'Tel Aviv',   required: true },
+            { type: 'input',  label: 'Street', key: 'location.street', placeholder: 'Dizengoff', required: true },
+            { type: 'input',  label: 'Number', key: 'location.number', placeholder: '50',         required: true }
+          ]
+        },
+        {
+          title: '📷 Camera',
+          fields: [
+            { type: 'select', label: 'Select Camera', key: 'cameraId', placeholder: 'Select camera...', options: cameraOptions,
+              hint: 'You can assign a camera after creating the crosswalk' }
+          ]
+        },
+        {
+          title: '💡 LED Lighting',
+          fields: [
+            { type: 'select', label: 'Select LED', key: 'ledId', placeholder: 'Select LED...', options: ledOptions,
+              hint: 'You can assign an LED after creating the crosswalk' }
+          ]
+        }
+      ]}
+    />
   );
 }
 

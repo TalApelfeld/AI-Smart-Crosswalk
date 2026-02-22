@@ -1,10 +1,10 @@
-import { Card, GenericTableList } from '../ui';
+import { GenericList, GenericDetailCard } from '../ui';
 
 /**
- * DeviceList Component (Type-Based Pattern)
+ * DeviceList Component (Registry-Based Pattern)
  * 
  * Displays a list of devices (Cameras or LEDs) in a table format.
- * Uses GenericTableList with type-based pattern for row components.
+ * Uses GenericList with Component Registry for type-based rendering.
  * 
  * @param {Array} devices - Array of device objects
  * @param {string} type - Type of device ('Camera' or 'LED')
@@ -13,45 +13,27 @@ import { Card, GenericTableList } from '../ui';
  * @param {boolean} loading - Loading state
  */
 export function DeviceList({ devices, type, onDelete, onEdit, loading }) {
-  // Define columns based on device type
-  const cameraColumns = [
-    { key: 'id', header: 'ID' },
-    { key: 'status', header: 'Status' },
-    { key: 'created', header: 'Created' },
-    { key: 'actions', header: 'Actions', align: 'right' }
-  ];
-
-  const ledColumns = [
-    { key: 'id', header: 'ID' },
-    { key: 'created', header: 'Created' },
-    { key: 'actions', header: 'Actions', align: 'right' }
-  ];
-
-  const columns = type === 'Camera' ? cameraColumns : ledColumns;
+  // Convert type to lowercase for GenericList registry lookup
+  const registryType = type.toLowerCase(); // 'camera' or 'led'
   
-  // Convert type to lowercase for GenericTableList
-  const tableType = type.toLowerCase(); // 'camera' or 'led'
-  
-  // Prepare row props based on device type
-  const rowProps = type === 'Camera' 
+  // Prepare props to pass to device row components
+  const itemProps = type === 'Camera' 
     ? { onEdit, onDelete }
     : { onDelete };
 
   return (
-    <GenericTableList
+    <GenericList
       items={devices}
-      type={tableType}
-      rowProps={rowProps}
-      columns={columns}
+      type={registryType}
+      itemProps={itemProps}
       keyExtractor={(device) => device._id}
       loading={loading}
       loadingMessage={`Loading ${type}s...`}
       emptyState={
-        <Card>
-          <div className="text-center py-8 text-surface-500">
-            No {type}s found
-          </div>
-        </Card>
+        <GenericDetailCard
+          className="text-center"
+          fields={[{ value: `No ${type}s found`, valueClassName: 'text-surface-500' }]}
+        />
       }
     />
   );

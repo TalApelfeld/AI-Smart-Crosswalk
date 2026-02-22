@@ -1,22 +1,39 @@
 import { memo } from 'react';
-import { AlertCard } from './AlertCard';
+import { Badge, GenericDetailCard } from '../ui';
+import { formatDate, formatDangerLevel, getImageUrl, formatLocation, formatId } from '../../utils';
 
-/**
- * AlertItem Component
- * 
- * Adapter component for AlertCard to work with GenericList's ItemComponent pattern.
- * This component receives 'item' as a prop and passes it to AlertCard as 'alert'.
- * Optimized with React.memo to prevent unnecessary re-renders.
- * 
- * @param {Object} item - The alert object
- * @param {Function} onEdit - Callback when edit button is clicked
- * @param {Function} onDelete - Callback when delete button is clicked
- */
 function AlertItemComponent({ item: alert, onEdit, onDelete }) {
-  return <AlertCard alert={alert} onEdit={onEdit} onDelete={onDelete} />;
+  const dangerLevel = formatDangerLevel(alert.dangerLevel);
+
+  const actions = [
+    onEdit   && { label: '✏️ Edit',   variant: 'ghost',  onClick: () => onEdit(alert) },
+    onDelete && { label: '🗑️ Delete', variant: 'danger', onClick: () => onDelete(alert) }
+  ].filter(Boolean);
+
+  return (
+    <GenericDetailCard
+      className={`border-l-4 ${dangerLevel.border}`}
+      header={{
+        icon: dangerLevel.icon,
+        title: 'Danger Detected',
+        subtitle: alert.crosswalkId?.location ? formatLocation(alert.crosswalkId.location) : undefined
+      }}
+      image={{
+        url: alert.detectionPhoto?.url ? getImageUrl(alert.detectionPhoto.url) : null,
+        alt: 'Detection',
+        fallbackIcon: '📷'
+      }}
+      fields={[
+        { label: 'Danger Level', component: <Badge variant={dangerLevel.variant}>{dangerLevel.label} Danger</Badge> },
+        { label: 'Detected', value: formatDate(alert.timestamp || alert.createdAt) },
+        { label: 'Camera',   value: formatId(alert.crosswalkId?.cameraId?._id) }
+      ]}
+      actions={actions}
+    />
+  );
 }
 
-// Export memoized version to prevent unnecessary re-renders
 export const AlertItem = memo(AlertItemComponent);
+
 
 
