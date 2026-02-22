@@ -1,7 +1,7 @@
 import { Routes, Route } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
-import { Navbar } from './components/layout';
+import { Navbar } from './components/ui';
 import { Dashboard, Alerts, Crosswalks, CrosswalkDetailsPage } from './pages';
 import { ToastProvider } from './components/ui';
 

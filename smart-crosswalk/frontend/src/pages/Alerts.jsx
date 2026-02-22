@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Badge, ConfirmDialog, CRUDPageLayout, useCRUDPage } from '../components/ui';
-import { AlertItem, StatsCard, FilterBar, AlertFormDialog } from '../components/features/alerts';
+import { AlertItem, StatsCard, FilterBar, AlertFormDialog } from '../components/features';
 import { useAlerts, useCrosswalks } from '../hooks';
 
 export function Alerts() {

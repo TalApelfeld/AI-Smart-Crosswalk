@@ -1,6 +1,6 @@
 import { Card, Spinner } from '../ui';
-import { CameraRowItem } from '../features/devices/CameraRowItem';
-import { LEDRowItem } from '../features/devices/LEDRowItem';
+import { CameraRowItem } from '../features/CameraRowItem';
+import { LEDRowItem } from '../features/LEDRowItem';
 
 /**
  * GenericTableList Component (Type-Based Pattern)

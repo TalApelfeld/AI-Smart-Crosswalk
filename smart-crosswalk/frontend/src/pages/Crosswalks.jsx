@@ -1,8 +1,8 @@
 import { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ConfirmDialog, useToast, CRUDPageLayout, useCRUDPage } from '../components/ui';
-import { StatsCard } from '../components/features/alerts';
-import { CrosswalkFormDialog, CrosswalkEditDialog, CrosswalkItem } from '../components/features/crosswalks';
+import { StatsCard } from '../components/features';
+import { CrosswalkFormDialog, CrosswalkEditDialog, CrosswalkItem } from '../components/features';
 import { useCrosswalks, useCameras, useLEDs } from '../hooks';
 
 export function Crosswalks() {

@@ -1,5 +1,5 @@
 import { memo } from 'react';
-import { Badge, Button } from '../../ui';
+import { Badge, Button } from '../ui';
 
 /**
  * CameraRowItem Component

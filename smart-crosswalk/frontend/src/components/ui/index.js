@@ -9,6 +9,8 @@ export { Select } from './Select';
 export { Input } from './Input';
 export { ToastProvider, useToast } from './Toast';
 export { DateRangePicker } from './DateRangePicker';
+export { Navbar } from './Navbar';
+export { PageHeader } from './PageHeader';
 
 // Re-export generic components
 export { GenericList, GenericTableList, CRUDPageLayout, GenericDetailCard, GenericFormDialog, useCRUDPage } from '../generic';

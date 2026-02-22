@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { GenericFormDialog, Select, Input } from '../../ui';
+import { GenericFormDialog, Select, Input } from '../ui';
 
 export function CrosswalkFormDialog({ 
   open, 

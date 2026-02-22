@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { PageHeader } from '../layout';
+import { PageHeader } from '../ui';
 import { LoadingScreen, Button } from '../ui';
 import { GenericList } from './GenericList';
 

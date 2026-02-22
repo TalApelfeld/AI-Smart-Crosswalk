@@ -1,4 +1,4 @@
-import { Badge, GenericDetailCard } from '../../ui';
+import { Badge, GenericDetailCard } from '../ui';
 
 export function AlertHistoryCard({ alert, onViewDetails }) {
   const formatDate = (dateString) => {

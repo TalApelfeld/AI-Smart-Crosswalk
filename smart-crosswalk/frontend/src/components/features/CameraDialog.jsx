@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { GenericFormDialog, Select } from '../../ui';
+import { GenericFormDialog, Select } from '../ui';
 
 export function CameraDialog({ isOpen, onClose, onSubmit, mode = 'create', camera = null }) {
   const [formData, setFormData] = useState({

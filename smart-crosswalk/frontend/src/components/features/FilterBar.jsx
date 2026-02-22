@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Button, DateRangePicker } from '../../ui';
+import { Button, DateRangePicker } from '../ui';
 
 export function FilterBar({ filters, onFilterChange, onClear, crosswalks = [] }) {
   const [isExpanded, setIsExpanded] = useState(false);

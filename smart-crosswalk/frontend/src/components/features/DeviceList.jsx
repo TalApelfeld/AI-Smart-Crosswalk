@@ -1,4 +1,4 @@
-import { Card, GenericTableList } from '../../ui';
+import { Card, GenericTableList } from '../ui';
 
 /**
  * DeviceList Component (Type-Based Pattern)

@@ -1,5 +1,5 @@
 import { memo } from 'react';
-import { Card, Badge, Button } from '../../ui';
+import { Card, Badge, Button } from '../ui';
 
 /**
  * CrosswalkItem Component

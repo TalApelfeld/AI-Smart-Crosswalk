@@ -1,8 +1,8 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { useCrosswalkDetails } from '../hooks';
-import { PageHeader } from '../components/layout';
+import { PageHeader } from '../components/ui';
 import { Card, CardHeader, CardTitle, CardContent, Badge, Button, Spinner, LoadingScreen, DateRangePicker, Select, GenericList } from '../components/ui';
-import { AlertHistoryItem } from '../components/features/alerts';
+import { AlertHistoryItem } from '../components/features';
 
 export function CrosswalkDetailsPage() {
   const { id } = useParams();

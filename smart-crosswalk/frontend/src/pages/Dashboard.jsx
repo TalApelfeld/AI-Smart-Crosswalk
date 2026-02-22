@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import { PageHeader } from '../components/layout';
+import { PageHeader } from '../components/ui';
 import { Card, LoadingScreen, Button } from '../components/ui';
-import { StatsCard } from '../components/features/alerts';
-import { CameraDialog, LEDDialog, DeviceList } from '../components/features/devices';
+import { StatsCard } from '../components/features';
+import { CameraDialog, LEDDialog, DeviceList } from '../components/features';
 import { useAlerts, useCrosswalks, useCameras, useLEDs } from '../hooks';
 
 export function Dashboard() {
