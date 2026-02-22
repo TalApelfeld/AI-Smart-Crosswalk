@@ -1,4 +1,4 @@
-import { GenericFormDialog } from '../ui';
+import { GenericFormDialog } from '../../ui';
 
 export function LEDDialog({ isOpen, onClose, onSubmit }) {
   const handleSubmit = (e) => {
@@ -20,3 +20,5 @@ export function LEDDialog({ isOpen, onClose, onSubmit }) {
     </GenericFormDialog>
   );
 }
+
+

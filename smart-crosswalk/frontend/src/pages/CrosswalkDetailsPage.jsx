@@ -1,14 +1,12 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { useCrosswalkDetails } from '../hooks';
 import { PageHeader } from '../components/layout';
-import { Card, CardHeader, CardTitle, CardContent, Badge, Button, Spinner, LoadingScreen, DateRangePicker, Select } from '../components/ui';
-import { AlertHistoryCard } from '../components/alerts';
+import { Card, CardHeader, CardTitle, CardContent, Badge, Button, Spinner, LoadingScreen, DateRangePicker, Select, GenericList } from '../components/ui';
+import { AlertHistoryItem } from '../components/features/alerts';
 
 export function CrosswalkDetailsPage() {
   const { id } = useParams();
   const navigate = useNavigate();
-  
-  console.log('CrosswalkDetailsPage rendered with id:', id);
   
   const {
     crosswalk,
@@ -20,12 +18,11 @@ export function CrosswalkDetailsPage() {
     pagination,
     goToPage,
     loading,
+    isInitialLoading,
     error
   } = useCrosswalkDetails(id);
-  
-  console.log('Hook state:', { crosswalk, loading, error, alerts: alerts?.length });
 
-  if (loading && !crosswalk) {
+  if (isInitialLoading) {
     return <LoadingScreen />;
   }
 
@@ -227,7 +224,7 @@ export function CrosswalkDetailsPage() {
           </h2>
         </div>
 
-        {loading ? (
+        {isInitialLoading ? (
           <div className="flex justify-center py-12">
             <Spinner size="lg" />
           </div>
@@ -247,11 +244,11 @@ export function CrosswalkDetailsPage() {
           </Card>
         ) : (
           <>
-            <div className="space-y-4">
-              {alerts.map((alert) => (
-                <AlertHistoryCard key={alert._id} alert={alert} />
-              ))}
-            </div>
+            <GenericList
+              items={alerts}
+              ItemComponent={AlertHistoryItem}
+              keyExtractor={(alert) => alert._id}
+            />
 
             {/* Pagination */}
             {pagination.totalPages > 1 && (
@@ -311,3 +308,4 @@ export function CrosswalkDetailsPage() {
     </div>
   );
 }
+

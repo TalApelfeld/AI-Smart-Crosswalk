@@ -1,70 +1,65 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { camerasApi } from '../api';
 
 export function useCameras(options = {}) {
   const { autoRefresh = false, refreshInterval = 10000 } = options;
-  
-  const [cameras, setCameras] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const queryClient = useQueryClient();
 
-  const fetchCameras = useCallback(async () => {
-    try {
+  const {
+    data: cameras = [],
+    isLoading: loading,
+    error,
+    refetch
+  } = useQuery({
+    queryKey: ['cameras'],
+    queryFn: async () => {
       const response = await camerasApi.getAll();
-      setCameras(response.data);
-      setError(null);
-    } catch (err) {
-      setError('Failed to fetch cameras');
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+      return response.data;
+    },
+    refetchInterval: autoRefresh ? refreshInterval : false,
+  });
 
-  const createCamera = useCallback(async (data) => {
-    try {
-      await camerasApi.create(data);
-      await fetchCameras();
-    } catch (err) {
-      setError('Failed to create camera');
-      throw err;
-    }
-  }, [fetchCameras]);
+  const createMutation = useMutation({
+    mutationFn: (data) => camerasApi.create(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries(['cameras']);
+      queryClient.invalidateQueries(['crosswalks']); // Cameras are linked to crosswalks
+    },
+  });
 
-  const updateCameraStatus = useCallback(async (id, status) => {
-    try {
-      await camerasApi.updateStatus(id, status);
-      await fetchCameras();
-    } catch (err) {
-      setError('Failed to update camera status');
-      throw err;
-    }
-  }, [fetchCameras]);
+  const updateStatusMutation = useMutation({
+    mutationFn: ({ id, status }) => camerasApi.updateStatus(id, status),
+    onSuccess: () => {
+      queryClient.invalidateQueries(['cameras']);
+      queryClient.invalidateQueries(['crosswalks']);
+    },
+  });
 
-  const deleteCamera = useCallback(async (id) => {
-    try {
-      await camerasApi.delete(id);
-      await fetchCameras();
-    } catch (err) {
-      setError('Failed to delete camera');
-      throw err;
-    }
-  }, [fetchCameras]);
+  const deleteMutation = useMutation({
+    mutationFn: (id) => camerasApi.delete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries(['cameras']);
+      queryClient.invalidateQueries(['crosswalks']);
+    },
+  });
 
-  useEffect(() => {
-    fetchCameras();
+  const createCamera = async (data) => {
+    return createMutation.mutateAsync(data);
+  };
 
-    if (autoRefresh) {
-      const interval = setInterval(fetchCameras, refreshInterval);
-      return () => clearInterval(interval);
-    }
-  }, [fetchCameras, autoRefresh, refreshInterval]);
+  const updateCameraStatus = async (id, status) => {
+    return updateStatusMutation.mutateAsync({ id, status });
+  };
+
+  const deleteCamera = async (id) => {
+    return deleteMutation.mutateAsync(id);
+  };
 
   return {
     cameras,
     loading,
-    error,
-    refetch: fetchCameras,
+    error: error?.message || null,
+    refetch,
     createCamera,
     updateCameraStatus,
     deleteCamera

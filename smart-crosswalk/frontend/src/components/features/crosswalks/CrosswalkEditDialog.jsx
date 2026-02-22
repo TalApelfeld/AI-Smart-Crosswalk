@@ -8,7 +8,7 @@ import {
   Button,
   Select,
   Input
-} from '../ui';
+} from '../../ui';
 
 export function CrosswalkEditDialog({ 
   open, 
@@ -262,3 +262,5 @@ export function CrosswalkEditDialog({
     </Dialog>
   );
 }
+
+

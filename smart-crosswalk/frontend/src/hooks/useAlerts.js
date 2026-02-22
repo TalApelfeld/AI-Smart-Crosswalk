@@ -1,89 +1,75 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { alertsApi } from '../api';
 
 export function useAlerts(options = {}) {
   const { autoRefresh = true, refreshInterval = 5000 } = options;
-  
-  const [alerts, setAlerts] = useState([]);
-  const [stats, setStats] = useState({ total: 0, low: 0, medium: 0, high: 0 });
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const queryClient = useQueryClient();
 
-  const fetchAlerts = useCallback(async () => {
-    try {
+  const {
+    data: alerts = [],
+    isLoading: loading,
+    error,
+    refetch
+  } = useQuery({
+    queryKey: ['alerts'],
+    queryFn: async () => {
       const response = await alertsApi.getAll();
-      setAlerts(response.data);
-      setError(null);
-    } catch (err) {
-      setError('Failed to fetch alerts');
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+      return response.data;
+    },
+    refetchInterval: autoRefresh ? refreshInterval : false,
+  });
 
-  const fetchStats = useCallback(async () => {
-    try {
+  const { data: stats = { total: 0, low: 0, medium: 0, high: 0 } } = useQuery({
+    queryKey: ['alerts-stats'],
+    queryFn: async () => {
       const response = await alertsApi.getStats();
-      setStats(response.data);
-    } catch (err) {
-      console.error('Failed to fetch stats:', err);
-    }
-  }, []);
+      return response.data;
+    },
+    refetchInterval: autoRefresh ? refreshInterval : false,
+  });
 
-  const createAlert = useCallback(async (data) => {
-    try {
-      await alertsApi.create(data);
-      await fetchAlerts();
-      await fetchStats();
-    } catch (err) {
-      setError('Failed to create alert');
-      throw err;
-    }
-  }, [fetchAlerts, fetchStats]);
+  const createMutation = useMutation({
+    mutationFn: (data) => alertsApi.create(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries(['alerts']);
+      queryClient.invalidateQueries(['alerts-stats']);
+    },
+  });
 
-  const updateAlert = useCallback(async (id, data) => {
-    try {
-      await alertsApi.update(id, data);
-      await fetchAlerts();
-      await fetchStats();
-    } catch (err) {
-      setError('Failed to update alert');
-      throw err;
-    }
-  }, [fetchAlerts, fetchStats]);
+  const updateMutation = useMutation({
+    mutationFn: ({ id, data }) => alertsApi.update(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries(['alerts']);
+      queryClient.invalidateQueries(['alerts-stats']);
+    },
+  });
 
-  const deleteAlert = useCallback(async (id) => {
-    try {
-      await alertsApi.delete(id);
-      await fetchAlerts();
-      await fetchStats();
-    } catch (err) {
-      setError('Failed to delete alert');
-      throw err;
-    }
-  }, [fetchAlerts, fetchStats]);
+  const deleteMutation = useMutation({
+    mutationFn: (id) => alertsApi.delete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries(['alerts']);
+      queryClient.invalidateQueries(['alerts-stats']);
+    },
+  });
 
-  useEffect(() => {
-    fetchAlerts();
-    fetchStats();
+  const createAlert = async (data) => {
+    return createMutation.mutateAsync(data);
+  };
 
-    if (autoRefresh) {
-      const interval = setInterval(() => {
-        fetchAlerts();
-        fetchStats();
-      }, refreshInterval);
+  const updateAlert = async (id, data) => {
+    return updateMutation.mutateAsync({ id, data });
+  };
 
-      return () => clearInterval(interval);
-    }
-  }, [fetchAlerts, fetchStats, autoRefresh, refreshInterval]);
+  const deleteAlert = async (id) => {
+    return deleteMutation.mutateAsync(id);
+  };
 
   return {
     alerts,
     stats,
     loading,
-    error,
-    refetch: fetchAlerts,
+    error: error?.message || null,
+    refetch,
     createAlert,
     updateAlert,
     deleteAlert

@@ -1,5 +1,5 @@
-import { Card, Badge, Button } from '../ui';
-import { cn, formatDate } from '../../utils';
+import { Card, Badge, Button } from '../../ui';
+import { cn, formatDate } from '../../../utils';
 
 const dangerLevelConfig = {
   LOW: { variant: 'warning', border: 'border-l-yellow-400', label: 'Low', icon: '🚨' },
@@ -108,12 +108,12 @@ export function AlertCard({ alert, onEdit, onDelete }) {
               console.error('Failed to load image:', imageUrl);
               e.target.style.display = 'none';
             }}
-            onLoad={() => {
-              console.log('Image loaded successfully:', imageUrl);
-            }}
           />
         </div>
       )}
     </Card>
   );
 }
+
+
+

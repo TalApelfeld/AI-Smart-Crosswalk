@@ -1,60 +1,53 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { ledsApi } from '../api';
 
 export function useLEDs(options = {}) {
   const { autoRefresh = false, refreshInterval = 10000 } = options;
-  
-  const [leds, setLEDs] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const queryClient = useQueryClient();
 
-  const fetchLEDs = useCallback(async () => {
-    try {
+  const {
+    data: leds = [],
+    isLoading: loading,
+    error,
+    refetch
+  } = useQuery({
+    queryKey: ['leds'],
+    queryFn: async () => {
       const response = await ledsApi.getAll();
-      setLEDs(response.data);
-      setError(null);
-    } catch (err) {
-      setError('Failed to fetch LEDs');
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+      return response.data;
+    },
+    refetchInterval: autoRefresh ? refreshInterval : false,
+  });
 
-  const createLED = useCallback(async (data) => {
-    try {
-      await ledsApi.create(data);
-      await fetchLEDs();
-    } catch (err) {
-      setError('Failed to create LED');
-      throw err;
-    }
-  }, [fetchLEDs]);
+  const createMutation = useMutation({
+    mutationFn: (data) => ledsApi.create(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries(['leds']);
+      queryClient.invalidateQueries(['crosswalks']); // LEDs are linked to crosswalks
+    },
+  });
 
-  const deleteLED = useCallback(async (id) => {
-    try {
-      await ledsApi.delete(id);
-      await fetchLEDs();
-    } catch (err) {
-      setError('Failed to delete LED');
-      throw err;
-    }
-  }, [fetchLEDs]);
+  const deleteMutation = useMutation({
+    mutationFn: (id) => ledsApi.delete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries(['leds']);
+      queryClient.invalidateQueries(['crosswalks']);
+    },
+  });
 
-  useEffect(() => {
-    fetchLEDs();
+  const createLED = async (data) => {
+    return createMutation.mutateAsync(data);
+  };
 
-    if (autoRefresh) {
-      const interval = setInterval(fetchLEDs, refreshInterval);
-      return () => clearInterval(interval);
-    }
-  }, [fetchLEDs, autoRefresh, refreshInterval]);
+  const deleteLED = async (id) => {
+    return deleteMutation.mutateAsync(id);
+  };
 
   return {
     leds,
     loading,
-    error,
-    refetch: fetchLEDs,
+    error: error?.message || null,
+    refetch,
     createLED,
     deleteLED
   };

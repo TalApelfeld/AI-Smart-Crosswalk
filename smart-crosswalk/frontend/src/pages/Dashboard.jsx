@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { PageHeader } from '../components/layout';
 import { Card, LoadingScreen, Button } from '../components/ui';
-import { StatsCard } from '../components/alerts';
-import { CameraDialog, LEDDialog, DeviceList } from '../components/devices';
+import { StatsCard } from '../components/features/alerts';
+import { CameraDialog, LEDDialog, DeviceList } from '../components/features/devices';
 import { useAlerts, useCrosswalks, useCameras, useLEDs } from '../hooks';
 
 export function Dashboard() {
@@ -211,3 +211,4 @@ export function Dashboard() {
     </div>
   );
 }
+

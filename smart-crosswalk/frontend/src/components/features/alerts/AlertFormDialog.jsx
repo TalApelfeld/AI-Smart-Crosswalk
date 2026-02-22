@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { GenericFormDialog, Select, Input } from '../ui';
+import { GenericFormDialog, Select, Input } from '../../ui';
 
 export function AlertFormDialog({ open, onClose, onSubmit, alert, crosswalks, loading }) {
   const isEdit = Boolean(alert);
@@ -92,3 +92,5 @@ export function AlertFormDialog({ open, onClose, onSubmit, alert, crosswalks, lo
     </GenericFormDialog>
   );
 }
+
+

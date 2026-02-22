@@ -1,5 +1,5 @@
-import { Card } from '../ui';
-import { cn } from '../../utils';
+import { Card } from '../../ui';
+import { cn } from '../../../utils';
 
 const colorVariants = {
   primary: 'text-primary-600',
@@ -29,3 +29,6 @@ export function StatsCard({ title, value, icon, color = 'primary', description }
     </Card>
   );
 }
+
+
+

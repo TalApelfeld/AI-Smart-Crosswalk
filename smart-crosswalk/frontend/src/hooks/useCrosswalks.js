@@ -1,123 +1,108 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { crosswalksApi } from '../api';
 
 export function useCrosswalks() {
-  const [crosswalks, setCrosswalks] = useState([]);
-  const [stats, setStats] = useState({ total: 0 });
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const queryClient = useQueryClient();
 
-  const fetchCrosswalks = useCallback(async () => {
-    try {
+  const { 
+    data: crosswalks = [], 
+    isLoading: loading, 
+    error: queryError,
+    refetch 
+  } = useQuery({
+    queryKey: ['crosswalks'],
+    queryFn: async () => {
       const response = await crosswalksApi.getAll();
-      setCrosswalks(response.data);
-      setError(null);
-    } catch (err) {
-      setError('Failed to fetch crosswalks');
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+      return response.data;
+    },
+  });
 
-  const fetchStats = useCallback(async () => {
-    try {
+  const { data: stats = { total: 0 } } = useQuery({
+    queryKey: ['crosswalks-stats'],
+    queryFn: async () => {
       const response = await crosswalksApi.getStats();
-      setStats(response.data);
-    } catch (err) {
-      console.error('Failed to fetch stats:', err);
-    }
-  }, []);
+      return response.data;
+    },
+  });
 
-  const createCrosswalk = useCallback(async (data) => {
-    try {
-      await crosswalksApi.create(data);
-      await fetchCrosswalks();
-      await fetchStats();
-    } catch (err) {
-      setError('Failed to create crosswalk');
-      throw err;
-    }
-  }, [fetchCrosswalks, fetchStats]);
+  const createMutation = useMutation({
+    mutationFn: (data) => crosswalksApi.create(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries(['crosswalks']);
+      queryClient.invalidateQueries(['crosswalks-stats']);
+    },
+  });
 
-  const updateCrosswalk = useCallback(async (id, data) => {
-    try {
-      await crosswalksApi.update(id, data);
-      await fetchCrosswalks();
-    } catch (err) {
-      setError('Failed to update crosswalk');
-      throw err;
-    }
-  }, [fetchCrosswalks]);
+  const updateMutation = useMutation({
+    mutationFn: ({ id, data }) => crosswalksApi.update(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries(['crosswalks']);
+    },
+  });
 
-  const deleteCrosswalk = useCallback(async (id) => {
-    try {
-      await crosswalksApi.delete(id);
-      await fetchCrosswalks();
-      await fetchStats();
-    } catch (err) {
-      setError('Failed to delete crosswalk');
-      throw err;
-    }
-  }, [fetchCrosswalks, fetchStats]);
+  const deleteMutation = useMutation({
+    mutationFn: (id) => crosswalksApi.delete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries(['crosswalks']);
+      queryClient.invalidateQueries(['crosswalks-stats']);
+    },
+  });
 
-  const linkCamera = useCallback(async (id, cameraId) => {
-    try {
-      await crosswalksApi.linkCamera(id, cameraId);
-      await fetchCrosswalks();
-    } catch (err) {
-      setError('Failed to link camera');
-      throw err;
-    }
-  }, [fetchCrosswalks]);
+  const linkCameraMutation = useMutation({
+    mutationFn: ({ id, cameraId }) => crosswalksApi.linkCamera(id, cameraId),
+    onSuccess: () => {
+      queryClient.invalidateQueries(['crosswalks']);
+    },
+  });
 
-  const unlinkCamera = useCallback(async (id) => {
-    try {
-      await crosswalksApi.unlinkCamera(id);
-      await fetchCrosswalks();
-    } catch (err) {
-      setError('Failed to unlink camera');
-      throw err;
-    }
-  }, [fetchCrosswalks]);
+  const unlinkCameraMutation = useMutation({
+    mutationFn: (id) => crosswalksApi.unlinkCamera(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries(['crosswalks']);
+    },
+  });
 
-  const linkLED = useCallback(async (id, ledId) => {
-    try {
-      await crosswalksApi.linkLED(id, ledId);
-      await fetchCrosswalks();
-    } catch (err) {
-      setError('Failed to link LED');
-      throw err;
-    }
-  }, [fetchCrosswalks]);
+  const linkLEDMutation = useMutation({
+    mutationFn: ({ id, ledId }) => crosswalksApi.linkLED(id, ledId),
+    onSuccess: () => {
+      queryClient.invalidateQueries(['crosswalks']);
+    },
+  });
 
-  const unlinkLED = useCallback(async (id) => {
-    try {
-      await crosswalksApi.unlinkLED(id);
-      await fetchCrosswalks();
-    } catch (err) {
-      setError('Failed to unlink LED');
-      throw err;
-    }
-  }, [fetchCrosswalks]);
-
-  useEffect(() => {
-    fetchCrosswalks();
-    fetchStats();
-  }, [fetchCrosswalks, fetchStats]);
+  const unlinkLEDMutation = useMutation({
+    mutationFn: (id) => crosswalksApi.unlinkLED(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries(['crosswalks']);
+    },
+  });
 
   return {
     crosswalks,
     stats,
     loading,
-    error,
-    refetch: fetchCrosswalks,
-    createCrosswalk,
-    updateCrosswalk,
-    deleteCrosswalk,
-    linkCamera,
-    unlinkCamera,
-    linkLED,
-    unlinkLED
+    error: queryError?.message || null,
+    refetch,
+    
+    createCrosswalk: async (data) => {
+      await createMutation.mutateAsync(data);
+    },
+    updateCrosswalk: async (id, data) => {
+      await updateMutation.mutateAsync({ id, data });
+    },
+    deleteCrosswalk: async (id) => {
+      await deleteMutation.mutateAsync(id);
+    },
+    linkCamera: async (id, cameraId) => {
+      await linkCameraMutation.mutateAsync({ id, cameraId });
+    },
+    unlinkCamera: async (id) => {
+      await unlinkCameraMutation.mutateAsync(id);
+    },
+    linkLED: async (id, ledId) => {
+      await linkLEDMutation.mutateAsync({ id, ledId });
+    },
+    unlinkLED: async (id) => {
+      await unlinkLEDMutation.mutateAsync(id);
+    },
   };
 }
