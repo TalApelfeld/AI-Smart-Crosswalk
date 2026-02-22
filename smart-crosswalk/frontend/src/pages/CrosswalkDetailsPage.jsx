@@ -246,7 +246,7 @@ export function CrosswalkDetailsPage() {
           <>
             <GenericList
               items={alerts}
-              ItemComponent={AlertHistoryItem}
+              type="alert-history"
               keyExtractor={(alert) => alert._id}
             />
 

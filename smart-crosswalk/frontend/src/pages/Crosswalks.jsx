@@ -177,14 +177,12 @@ export function Crosswalks() {
           </div>
         }
         
-        ItemComponent={(props) => (
-          <CrosswalkItem
-            {...props}
-            onEdit={handleEdit}
-            onDelete={handleDelete}
-            onClick={() => handleCrosswalkClick(props.item)}
-          />
-        )}
+        type="crosswalk"
+        itemProps={{ 
+          onEdit: handleEdit, 
+          onDelete: handleDelete,
+          onClick: handleCrosswalkClick
+        }}
         
         emptyIcon="🚦"
         emptyTitle="No Crosswalks"

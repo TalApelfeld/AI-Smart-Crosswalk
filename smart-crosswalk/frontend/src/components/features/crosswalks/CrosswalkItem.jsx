@@ -13,8 +13,10 @@ import { Card, Badge, Button } from '../../ui';
  * @param {Function} onClick - Callback when card is clicked
  */
 function CrosswalkItemComponent({ item: crosswalk, onEdit, onDelete, onClick }) {
+  const handleClick = () => onClick?.(crosswalk);
+  
   return (
-    <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={onClick}>
+    <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={handleClick}>
       <div className="flex items-start justify-between">
         <div className="flex-1">
           <div className="flex items-center gap-3">

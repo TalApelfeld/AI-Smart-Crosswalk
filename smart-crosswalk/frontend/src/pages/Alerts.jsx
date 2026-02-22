@@ -111,9 +111,8 @@ export function Alerts() {
           />
         }
         
-        ItemComponent={(props) => (
-          <AlertItem {...props} onEdit={handleEdit} onDelete={handleDelete} />
-        )}
+        type="alert"
+        itemProps={{ onEdit: handleEdit, onDelete: handleDelete }}
         
         emptyIcon="🚨"
         emptyTitle={alerts.length === 0 ? 'No Alerts' : 'No Matching Alerts'}

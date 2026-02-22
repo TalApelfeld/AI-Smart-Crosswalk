@@ -4,7 +4,7 @@ import { LoadingScreen, Button } from '../ui';
 import { GenericList } from './GenericList';
 
 /**
- * CRUDPageLayout Component
+ * CRUDPageLayout Component (Type-Based Pattern)
  * 
  * A comprehensive layout wrapper for CRUD pages that handles:
  * - PageHeader with title, description, and action buttons
@@ -27,7 +27,8 @@ import { GenericList } from './GenericList';
  * @param {Function} onSearch - Custom search function (item, query) => boolean
  * @param {ReactNode} statsSection - Stats cards section
  * @param {ReactNode} filtersSection - Filters section
- * @param {React.Component} ItemComponent - Component to render each item
+ * @param {string} type - Type of items ('crosswalk', 'alert', 'alert-history')
+ * @param {Object} itemProps - Additional props to pass to each item component
  * @param {Function} keyExtractor - Function to extract unique key from item
  * @param {ReactNode} emptyState - Empty state component
  * @param {string} emptyIcon - Icon for default empty state
@@ -48,7 +49,8 @@ export function CRUDPageLayout({
   onSearch,
   statsSection,
   filtersSection,
-  ItemComponent,
+  type,
+  itemProps = {},
   keyExtractor,
   emptyState,
   emptyIcon = '📋',
@@ -165,7 +167,8 @@ export function CRUDPageLayout({
       {/* Items List */}
       <GenericList
         items={filteredItems}
-        ItemComponent={ItemComponent}
+        type={type}
+        itemProps={itemProps}
         keyExtractor={keyExtractor}
         emptyState={emptyState || defaultEmptyState}
         {...listProps}
