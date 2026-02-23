@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Card, Badge, Button } from '../ui';
 import { cn, formatDate } from '../../utils';
 
@@ -30,6 +31,7 @@ const getImageUrl = (url) => {
 };
 
 export function AlertCard({ alert, onEdit, onDelete }) {
+  const [imageError, setImageError] = useState(false);
   const dangerLevel = dangerLevelConfig[alert.dangerLevel] || dangerLevelConfig.MEDIUM;
   const imageUrl = alert.detectionPhoto?.url ? getImageUrl(alert.detectionPhoto.url) : null;
 
@@ -100,18 +102,28 @@ export function AlertCard({ alert, onEdit, onDelete }) {
       {/* Image */}
       {imageUrl && (
         <div className="mt-4">
-          <img
-            src={imageUrl}
-            alt="Detection"
-            className="rounded-lg max-w-md w-full h-auto shadow-sm object-cover"
-            onError={(e) => {
-              console.error('Failed to load image:', imageUrl);
-              e.target.style.display = 'none';
-            }}
-            onLoad={() => {
-              console.log('Image loaded successfully:', imageUrl);
-            }}
-          />
+          {!imageError ? (
+            <img
+              src={imageUrl}
+              alt="Detection"
+              className="rounded-lg max-w-md w-full h-auto shadow-sm object-cover"
+              referrerPolicy="no-referrer"
+              onError={() => setImageError(true)}
+            />
+          ) : (
+            <div className="rounded-lg max-w-md w-full p-6 bg-surface-100 border border-surface-200 flex flex-col items-center justify-center gap-2">
+              <span className="text-4xl text-surface-400">📷</span>
+              <p className="text-sm text-surface-500">Image could not be loaded</p>
+              <a
+                href={imageUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-sm text-primary-600 hover:underline"
+              >
+                Open image in new tab
+              </a>
+            </div>
+          )}
         </div>
       )}
     </Card>

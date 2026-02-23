@@ -12,7 +12,8 @@ export function useAlerts(options = {}) {
   const fetchAlerts = useCallback(async () => {
     try {
       const response = await alertsApi.getAll();
-      setAlerts(response.data);
+      // API returns { success, count, data: alerts } - extract the alerts array
+      setAlerts(response?.data ?? []);
       setError(null);
     } catch (err) {
       setError('Failed to fetch alerts');
@@ -25,7 +26,8 @@ export function useAlerts(options = {}) {
   const fetchStats = useCallback(async () => {
     try {
       const response = await alertsApi.getStats();
-      setStats(response.data);
+      // API returns { success, data: stats } - extract stats
+      setStats(response?.data ?? { total: 0, low: 0, medium: 0, high: 0 });
     } catch (err) {
       console.error('Failed to fetch stats:', err);
     }

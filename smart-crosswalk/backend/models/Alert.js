@@ -25,11 +25,29 @@ const alertSchema = new mongoose.Schema({
     url: {
       type: String,
       required: false
+    },
+    data: {
+      type: Buffer,
+      required: false,
+      select: false // Exclude from default queries to avoid loading large binary
+    },
+    contentType: {
+      type: String,
+      required: false
     }
   }
 
 }, {
-  timestamps: true
+  timestamps: true,
+  toJSON: {
+    transform: (doc, ret) => {
+      // For binary-stored images, provide URL to fetch from /api/alerts/:id/photo
+      if (ret.detectionPhoto?.contentType && !ret.detectionPhoto?.url) {
+        ret.detectionPhoto.url = `/api/alerts/${ret._id}/photo`;
+      }
+      return ret;
+    }
+  }
 });
 
 // Indexes for better query performance - per specification
