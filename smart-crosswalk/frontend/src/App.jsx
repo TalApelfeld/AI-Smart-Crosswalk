@@ -5,17 +5,19 @@ import { Navbar } from './components/ui';
 import { Dashboard, Alerts, Crosswalks, CrosswalkDetailsPage } from './pages';
 import { ToastProvider } from './components/ui';
 
+// Global cache shared across all pages. Data fetched once is reused for 5 minutes without re-fetching.
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 5 * 60 * 1000, // 5 minutes - data stays fresh
-      cacheTime: 10 * 60 * 1000, // 10 minutes - cache retention
-      refetchOnWindowFocus: false, // Don't refetch on window focus
-      retry: 1, // Retry failed requests once
+      staleTime: 5 * 60 * 1000,
+      cacheTime: 10 * 60 * 1000,
+      refetchOnWindowFocus: false,
+      retry: 1,
     },
   },
 });
 
+// Root component — wraps the app with the cache provider, toast notifications, and page routing.
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
@@ -32,7 +34,7 @@ function App() {
           </main>
         </div>
       </ToastProvider>
-      {/* 🔹 DevTools - only in development */}
+      {/* DevTools panel — visible only in development */}
       {import.meta.env.DEV && <ReactQueryDevtools initialIsOpen={false} />}
     </QueryClientProvider>
   );
