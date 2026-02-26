@@ -13,9 +13,7 @@
  * No other files need to be modified!
  */
 
-import { CrosswalkItem } from '../features/CrosswalkItem';
-import { AlertItem } from '../features/AlertItem';
-import { AlertHistoryItem } from '../features/AlertHistoryItem';
+import { CrosswalkItem, AlertItem } from '../features/cardRegistry';
 import { DeviceRowItem } from '../features/DeviceRowItem';
 
 /**
@@ -49,24 +47,11 @@ export const componentRegistry = {
     }
   },
   
-  // Alert items - displayed as cards with danger indicators
+  // Alert items — variant passed via itemProps: 'list' (default) or 'history'
   alert: {
     component: AlertItem,
     layout: 'card',
-    metadata: {
-      icon: '🚨',
-      variant: 'danger'
-    }
-  },
-  
-  // Alert history - displayed as cards (historical view)
-  'alert-history': {
-    component: AlertHistoryItem,
-    layout: 'card',
-    metadata: {
-      icon: '📋',
-      variant: 'default'
-    }
+    metadata: { icon: '🚨' }
   },
   
   // Camera devices - displayed as table rows with status and edit

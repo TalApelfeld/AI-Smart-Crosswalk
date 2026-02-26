@@ -3,10 +3,10 @@ import {
   PageHeader, ConfirmDialog,
   Card, CardHeader, CardTitle, CardContent,
   LoadingScreen, Button,
-  GenericDetailCard, StatusIndicator
+  StatusIndicator,
+  useToast
 } from '../components/ui';
-import { CameraDialog, LEDDialog, DeviceList } from '../components/features';
-import { StatsGrid } from '../components/generic';
+import { ItemDialog, StatsGrid, GenericCRUDLayout, GenericDetailCard } from '../components';
 import { useAlerts, useCrosswalks, useCameras, useLEDs } from '../hooks';
 
 export function Dashboard() {
@@ -14,6 +14,7 @@ export function Dashboard() {
   const { stats: crosswalkStats, loading: crosswalksLoading } = useCrosswalks();
   const { cameras, createCamera, updateCameraStatus, deleteCamera, loading: camerasLoading } = useCameras();
   const { leds, createLED, deleteLED, loading: ledsLoading } = useLEDs();
+  const { addToast } = useToast();
 
   const [cameraDialogOpen, setCameraDialogOpen] = useState(false);
   const [ledDialogOpen, setLEDDialogOpen] = useState(false);
@@ -21,19 +22,33 @@ export function Dashboard() {
   const [editingCamera, setEditingCamera] = useState(null);
   const [confirmDialog, setConfirmDialog] = useState({ open: false, message: '', onConfirm: null });
 
+  const closeConfirm = () => setConfirmDialog({ open: false, message: '', onConfirm: null });
+
+  // Opens a confirmation dialog and runs action on confirm
+  const askConfirm = (message, action) =>
+    setConfirmDialog({
+      open: true,
+      message,
+      onConfirm: async () => {
+        try { await action(); }
+        catch (err) { addToast(err.message || 'Operation failed', 'error'); }
+        finally { closeConfirm(); }
+      }
+    });
+
   const handleCreateCamera = async (data) => {
     try {
       if (editingCamera) {
-        // Update existing camera status
         await updateCameraStatus(editingCamera._id, data.status);
+        addToast('Camera updated successfully', 'success');
       } else {
-        // Create new camera
         await createCamera(data);
+        addToast('Camera created successfully', 'success');
       }
       setCameraDialogOpen(false);
       setEditingCamera(null);
     } catch (err) {
-      console.error('Failed to save camera:', err);
+      addToast(err.message || 'Failed to save camera', 'error');
     }
   };
 
@@ -46,44 +61,16 @@ export function Dashboard() {
     try {
       await createLED(data);
       setLEDDialogOpen(false);
+      addToast('LED created successfully', 'success');
     } catch (err) {
-      console.error('Failed to create LED:', err);
+      addToast(err.message || 'Failed to create LED', 'error');
     }
   };
 
-  const handleDeleteCamera = (id) => {
-    setConfirmDialog({
-      open: true,
-      message: 'Are you sure you want to delete this camera?',
-      onConfirm: async () => {
-        try {
-          await deleteCamera(id);
-        } catch (err) {
-          console.error('Failed to delete camera:', err);
-        } finally {
-          setConfirmDialog({ open: false, message: '', onConfirm: null });
-        }
-      }
-    });
-  };
+  const handleDeleteCamera = (id) => askConfirm('Are you sure you want to delete this camera?', () => deleteCamera(id));
+  const handleDeleteLED    = (id) => askConfirm('Are you sure you want to delete this LED?',    () => deleteLED(id));
 
-  const handleDeleteLED = (id) => {
-    setConfirmDialog({
-      open: true,
-      message: 'Are you sure you want to delete this LED?',
-      onConfirm: async () => {
-        try {
-          await deleteLED(id);
-        } catch (err) {
-          console.error('Failed to delete LED:', err);
-        } finally {
-          setConfirmDialog({ open: false, message: '', onConfirm: null });
-        }
-      }
-    });
-  };
-
-  if (alertsLoading || crosswalksLoading) {
+  if (alertsLoading || crosswalksLoading || camerasLoading || ledsLoading) {
     return <LoadingScreen message="Loading dashboard..." />;
   }
 
@@ -147,59 +134,53 @@ export function Dashboard() {
       {/* Device Management */}
       {showDevices && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <Card>
-            <CardHeader className="flex items-center justify-between">
-              <CardTitle>📷 Cameras</CardTitle>
-              <Button onClick={() => setCameraDialogOpen(true)} size="sm">+ Add Camera</Button>
-            </CardHeader>
-            <CardContent>
-              <DeviceList
-                devices={cameras}
-                type="Camera"
-                onDelete={handleDeleteCamera}
-                onEdit={handleEditCamera}
-                loading={camerasLoading}
-              />
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex items-center justify-between">
-              <CardTitle>💡 LED Systems</CardTitle>
-              <Button onClick={() => setLEDDialogOpen(true)} size="sm">+ Add LED</Button>
-            </CardHeader>
-            <CardContent>
-              <DeviceList
-                devices={leds}
-                type="LED"
-                onDelete={handleDeleteLED}
-                loading={ledsLoading}
-              />
-            </CardContent>
-          </Card>
+          <GenericCRUDLayout
+            title="📷 Cameras"
+            items={cameras}
+            allItems={cameras}
+            loading={false}
+            type="camera"
+            keyExtractor={(item) => item._id}
+            createButton={{ text: 'Add Camera', onClick: () => setCameraDialogOpen(true) }}
+            itemProps={{ onEdit: handleEditCamera, onDelete: handleDeleteCamera }}
+            emptyIcon="📷"
+            emptyTitle="No Cameras"
+            emptyMessage="No cameras registered yet."
+          />
+          <GenericCRUDLayout
+            title="💡 LED Systems"
+            items={leds}
+            allItems={leds}
+            loading={false}
+            type="led"
+            keyExtractor={(item) => item._id}
+            createButton={{ text: 'Add LED', onClick: () => setLEDDialogOpen(true) }}
+            itemProps={{ onDelete: handleDeleteLED }}
+            emptyIcon="💡"
+            emptyTitle="No LEDs"
+            emptyMessage="No LED systems registered yet."
+          />
         </div>
       )}
 
       {/* Dialogs */}
-      <CameraDialog
-        isOpen={cameraDialogOpen}
-        onClose={() => {
-          setCameraDialogOpen(false);
-          setEditingCamera(null);
-        }}
+      <ItemDialog
+        type="camera"
+        open={cameraDialogOpen}
+        item={editingCamera}
+        onClose={() => { setCameraDialogOpen(false); setEditingCamera(null); }}
         onSubmit={handleCreateCamera}
-        mode={editingCamera ? 'edit' : 'create'}
-        camera={editingCamera}
       />
-      <LEDDialog
-        isOpen={ledDialogOpen}
+      <ItemDialog
+        type="led"
+        open={ledDialogOpen}
         onClose={() => setLEDDialogOpen(false)}
         onSubmit={handleCreateLED}
       />
 
       <ConfirmDialog
         open={confirmDialog.open}
-        onClose={() => setConfirmDialog({ open: false, message: '', onConfirm: null })}
+        onClose={closeConfirm}
         onConfirm={confirmDialog.onConfirm}
         title="Confirm Delete"
         message={confirmDialog.message}

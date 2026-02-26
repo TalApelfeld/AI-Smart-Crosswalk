@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Button, Card, Badge, DateRangePicker, Select, Input } from '../ui';
+import { Button, Card, Badge, DateRangePicker, Select, Input } from './ui';
 
 export function FilterBar({ filters, onFilterChange, onClear, crosswalks = [] }) {
   const [isExpanded, setIsExpanded] = useState(false);
@@ -8,7 +8,7 @@ export function FilterBar({ filters, onFilterChange, onClear, crosswalks = [] })
     onFilterChange({ ...filters, [filterKey]: value });
   };
 
-  const hasActiveFilters = 
+  const hasActiveFilters =
     filters.dangerLevel !== 'all' ||
     (filters.crosswalkSearch && filters.crosswalkSearch.trim() !== '') ||
     (filters.dateRange?.startDate || filters.dateRange?.endDate);
@@ -19,25 +19,13 @@ export function FilterBar({ filters, onFilterChange, onClear, crosswalks = [] })
         <div className="flex items-center gap-3">
           <span className="text-lg">🔍</span>
           <h3 className="font-semibold text-surface-900">Filters</h3>
-          {hasActiveFilters && (
-            <Badge variant="primary">Active</Badge>
-          )}
+          {hasActiveFilters && <Badge variant="primary">Active</Badge>}
         </div>
         <div className="flex items-center gap-2">
           {hasActiveFilters && (
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={onClear}
-            >
-              Clear All
-            </Button>
+            <Button variant="secondary" size="sm" onClick={onClear}>Clear All</Button>
           )}
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={() => setIsExpanded(!isExpanded)}
-          >
+          <Button variant="secondary" size="sm" onClick={() => setIsExpanded(!isExpanded)}>
             {isExpanded ? '▲ Hide' : '▼ Show'}
           </Button>
         </div>
@@ -70,21 +58,14 @@ export function FilterBar({ filters, onFilterChange, onClear, crosswalks = [] })
                       />
                       <svg
                         className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" viewBox="0 0 24 24"
                       >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                        />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                          d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                       </svg>
                       {value && (
                         <Button
-                          variant="ghost"
-                          size="sm"
+                          variant="ghost" size="sm"
                           onClick={() => handleChange(key, '')}
                           className="absolute right-1 top-1/2 -translate-y-1/2 !p-1 text-gray-400 hover:text-gray-600"
                         >
@@ -115,9 +96,7 @@ export function FilterBar({ filters, onFilterChange, onClear, crosswalks = [] })
                     >
                       <option value="all">All {config.label}</option>
                       {config.options.map((opt) => (
-                        <option key={opt.value} value={opt.value}>
-                          {opt.label}
-                        </option>
+                        <option key={opt.value} value={opt.value}>{opt.label}</option>
                       ))}
                     </Select>
                   )}
@@ -131,27 +110,14 @@ export function FilterBar({ filters, onFilterChange, onClear, crosswalks = [] })
   );
 }
 
-function getFilterConfig(key, crosswalks = []) {
+function getFilterConfig(key) {
   const configs = {
     dangerLevel: {
       label: 'Danger Level',
-      options: [
-        { value: 'LOW', label: 'Low' },
-        { value: 'MEDIUM', label: 'Medium' },
-        { value: 'HIGH', label: 'High' }
-      ]
+      options: [{ value: 'LOW', label: 'Low' }, { value: 'MEDIUM', label: 'Medium' }, { value: 'HIGH', label: 'High' }],
     },
-    dateRange: {
-      label: 'Date Range',
-      type: 'daterange'
-    },
-    crosswalkSearch: {
-      label: 'Search Crosswalk',
-      type: 'search'
-    }
+    dateRange:       { label: 'Date Range',       type: 'daterange' },
+    crosswalkSearch: { label: 'Search Crosswalk', type: 'search' },
   };
-
   return configs[key];
 }
-
-

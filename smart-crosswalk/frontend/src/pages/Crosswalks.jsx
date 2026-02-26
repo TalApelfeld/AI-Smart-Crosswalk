@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ConfirmDialog, useToast, CRUDPageLayout, useCRUDPage } from '../components/ui';
-import { CrosswalkFormDialog, CrosswalkEditDialog, CrosswalkItem } from '../components/features';
+import { GenericCRUDLayout, useCRUDPage, ItemDialog, pageConfigs } from '../components';
+import { useToast } from '../components/ui';
 import { useCrosswalks, useCameras, useLEDs } from '../hooks';
 
 export function Crosswalks() {
@@ -25,7 +25,6 @@ export function Crosswalks() {
   const { leds, createLED, refetch: refetchLEDs } = useLEDs();
   const { addToast } = useToast();
   
-  // State for handling async operations outside of CRUD hooks
   const [submittingExtra, setSubmitting] = useState(false);
 
   const {
@@ -35,14 +34,14 @@ export function Crosswalks() {
     handleCreate,
     handleDelete,
     handleFormSubmit,
-    handleConfirmDelete,
     closeFormDialog,
-    closeDeleteDialog
+    DeleteDialog
   } = useCRUDPage({
     createFn: createCrosswalk,
     updateFn: updateCrosswalk,
     deleteFn: deleteCrosswalk,
-    entityName: 'Crosswalk'
+    entityName: 'Crosswalk',
+    deleteMessage: (item) => `Are you sure you want to delete the crosswalk at ${item?.location?.city}, ${item?.location?.street}?`
   });
 
   const [editDialog, setEditDialog] = useState({ open: false, crosswalk: null });
@@ -54,174 +53,79 @@ export function Crosswalks() {
   const handleCrosswalkClick = useCallback((crosswalk) => {
     navigate(`/crosswalks/${crosswalk._id}`);
   }, [navigate]);
-  const handleUpdate = async (id, data) => {
+
+  // Helper: wraps any async action with loading state, toast feedback, and optional refetch.
+  const withLoading = (action, successMsg, errorMsg, refetchFn = refetch) => async (...args) => {
     setSubmitting(true);
     try {
-      await updateCrosswalk(id, data);
-      addToast('Location updated successfully', 'success');
-      refetch();
-    } catch (error) {
-      addToast(error.message || 'Error updating location', 'error');
+      await action(...args);
+      addToast(successMsg, 'success');
+      refetchFn();
+    } catch (err) {
+      addToast(err.message || errorMsg, 'error');
     } finally {
       setSubmitting(false);
     }
   };
 
-  const handleLinkCamera = async (id, cameraId) => {
-    setSubmitting(true);
-    try {
-      await linkCamera(id, cameraId);
-      addToast('Camera linked successfully', 'success');
-      refetch();
-    } catch (error) {
-      addToast(error.message || 'Error linking camera', 'error');
-    } finally {
-      setSubmitting(false);
-    }
-  };
+  const handleUpdate       = withLoading((id, data) => updateCrosswalk(id, data), 'Location updated successfully',  'Error updating location');
+  const handleLinkCamera   = withLoading((id, cameraId) => linkCamera(id, cameraId), 'Camera linked successfully',  'Error linking camera');
+  const handleUnlinkCamera = withLoading((id) => unlinkCamera(id),                   'Camera unlinked successfully', 'Error unlinking camera');
+  const handleLinkLED      = withLoading((id, ledId) => linkLED(id, ledId),          'LED linked successfully',      'Error linking LED');
+  const handleUnlinkLED    = withLoading((id) => unlinkLED(id),                      'LED unlinked successfully',    'Error unlinking LED');
+  const handleCreateCamera = withLoading(() => createCamera({ status: 'active' }),   'Camera created successfully',  'Error creating camera', refetchCameras);
+  const handleCreateLED    = withLoading(() => createLED({}),                        'LED created successfully',     'Error creating LED',    refetchLEDs);
 
-  const handleUnlinkCamera = async (id) => {
-    setSubmitting(true);
-    try {
-      await unlinkCamera(id);
-      addToast('Camera unlinked successfully', 'success');
-      refetch();
-    } catch (error) {
-      addToast(error.message || 'Error unlinking camera', 'error');
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
-  const handleLinkLED = async (id, ledId) => {
-    setSubmitting(true);
-    try {
-      await linkLED(id, ledId);
-      addToast('LED linked successfully', 'success');
-      refetch();
-    } catch (error) {
-      addToast(error.message || 'Error linking LED', 'error');
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
-  const handleUnlinkLED = async (id) => {
-    setSubmitting(true);
-    try {
-      await unlinkLED(id);
-      addToast('LED unlinked successfully', 'success');
-      refetch();
-    } catch (error) {
-      addToast(error.message || 'Error unlinking LED', 'error');
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
-  const handleCreateCamera = async () => {
-    setSubmitting(true);
-    try {
-      await createCamera({ status: 'active' });
-      addToast('Camera created successfully', 'success');
-      refetchCameras();
-    } catch (error) {
-      addToast(error.message || 'Error creating camera', 'error');
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
-  const handleCreateLED = async () => {
-    setSubmitting(true);
-    try {
-      await createLED({});
-      addToast('LED created successfully', 'success');
-      refetchLEDs();
-    } catch (error) {
-      addToast(error.message || 'Error creating LED', 'error');
-    } finally {
-      setSubmitting(false);
-    }
-  };
+  const cfg = pageConfigs.crosswalk;
 
   return (
     <>
-      <CRUDPageLayout
-        title="Crosswalks"
-        description="View all crosswalk locations and their connected devices"
-        createButton={{ text: "Add Crosswalk", onClick: handleCreate }}
-        
+      <GenericCRUDLayout
+        {...cfg}
+        stats={cfg.stats(crosswalks)}
+        createButton={{ text: 'Add Crosswalk', onClick: handleCreate }}
         items={crosswalks}
         allItems={crosswalks}
         loading={loading}
         error={error}
-        
-        searchEnabled={true}
-        searchPlaceholder="Search by city, street, or number..."
-        onSearch={(crosswalk, query) => {
-          const search = query.toLowerCase();
-          return (
-            crosswalk.location?.city?.toLowerCase().includes(search) ||
-            crosswalk.location?.street?.toLowerCase().includes(search) ||
-            crosswalk.location?.number?.toLowerCase().includes(search)
-          );
-        }}
-        
-        stats={[
-          { title: 'Total Crosswalks', value: stats.total, icon: '🚦', color: 'primary' }
-        ]}
-        
-        type="crosswalk"
-        itemProps={{ 
-          onEdit: handleEdit, 
+        itemProps={{
+          onEdit:   handleEdit,
           onDelete: handleDelete,
-          onClick: handleCrosswalkClick
+          onClick:  handleCrosswalkClick,
         }}
-        
-        emptyIcon="🚦"
-        emptyTitle="No Crosswalks"
-        emptyMessage="No crosswalks configured in the system yet."
       />
 
       {/* Dialogs */}
-      <CrosswalkFormDialog
+      <ItemDialog
+        type="crosswalk"
         open={formDialog.open}
+        item={formDialog.item}
         onClose={closeFormDialog}
         onSubmit={handleFormSubmit}
-        crosswalk={formDialog.item}
-        cameras={cameras}
-        leds={leds}
         loading={submitting}
+        context={{ cameras, leds }}
       />
 
-      <CrosswalkEditDialog
+      <ItemDialog
+        type="crosswalk-edit"
         open={editDialog.open}
+        item={editDialog.crosswalk}
         onClose={() => setEditDialog({ open: false, crosswalk: null })}
-        crosswalk={editDialog.crosswalk}
-        cameras={cameras}
-        leds={leds}
-        onUpdate={handleUpdate}
-        onLinkCamera={handleLinkCamera}
-        onUnlinkCamera={handleUnlinkCamera}
-        onLinkLED={handleLinkLED}
-        onUnlinkLED={handleUnlinkLED}
-        onCreateCamera={handleCreateCamera}
-        onCreateLED={handleCreateLED}
         loading={submittingExtra}
+        context={{
+          cameras,
+          leds,
+          onUpdate:        handleUpdate,
+          onLinkCamera:    handleLinkCamera,
+          onUnlinkCamera:  handleUnlinkCamera,
+          onLinkLED:       handleLinkLED,
+          onUnlinkLED:     handleUnlinkLED,
+          onCreateCamera:  handleCreateCamera,
+          onCreateLED:     handleCreateLED
+        }}
       />
 
-      <ConfirmDialog
-        open={deleteDialog.open}
-        onClose={closeDeleteDialog}
-        onConfirm={handleConfirmDelete}
-        title="Delete Crosswalk"
-        message={`Are you sure you want to delete the crosswalk at ${deleteDialog.item?.location?.city}, ${deleteDialog.item?.location?.street}?`}
-        confirmText="Delete"
-        cancelText="Cancel"
-        variant="danger"
-        loading={submitting}
-      />
+      <DeleteDialog />
     </>
   );
 }

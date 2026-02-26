@@ -13,6 +13,3 @@ export { Navbar } from './Navbar';
 export { PageHeader } from './PageHeader';
 export { StatusIndicator } from './StatusIndicator';
 
-// Re-export generic components
-export { GenericList, CRUDPageLayout, GenericDetailCard, GenericFormDialog, StatsGrid, useCRUDPage } from '../generic';
-

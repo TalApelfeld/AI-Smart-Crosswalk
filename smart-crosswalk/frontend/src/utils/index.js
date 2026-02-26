@@ -1,9 +1,6 @@
 import { clsx } from 'clsx';
 
-// Re-export all formatters
 export * from './formatters';
-// Re-export all field getters
-export * from './fieldGetters';
 
 // Utility function for className merging
 export function cn(...inputs) {

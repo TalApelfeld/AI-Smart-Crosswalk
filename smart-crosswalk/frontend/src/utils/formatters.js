@@ -109,9 +109,9 @@ export function formatLocation(location) {
  */
 export function formatDangerLevel(level) {
   const configs = {
-    LOW: { variant: 'warning', border: 'border-l-yellow-400', label: 'Low', icon: '🚨' },
-    MEDIUM: { variant: 'orange', border: 'border-l-orange-500', label: 'Medium', icon: '🚨' },
-    HIGH: { variant: 'danger', border: 'border-l-danger-500', label: 'High', icon: '🚨' }
+    LOW: { variant: 'warning', border: 'border-l-yellow-400', label: 'Low',    icon: '🚨' },
+    MEDIUM: { variant: 'orange',  border: 'border-l-orange-500', label: 'Medium', icon: '🚨' },
+    HIGH: { variant: 'danger',  border: 'border-l-red-500',    label: 'High',   icon: '🚨' }
   };
   
   return configs[level] || configs.MEDIUM;
