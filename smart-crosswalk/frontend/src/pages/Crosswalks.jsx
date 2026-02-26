@@ -4,6 +4,16 @@ import { GenericCRUDLayout, useCRUDPage, ItemDialog, pageConfigs } from '../comp
 import { useToast } from '../components/ui';
 import { useCrosswalks, useCameras, useLEDs } from '../hooks';
 
+/**
+ * Crosswalks — CRUD list page for crosswalk locations.
+ *
+ * Shows a searchable, stat-annotated list of all crosswalks.
+ * Clicking a row navigates to CrosswalkDetailsPage.
+ * A tabbed edit dialog lets the user update the location or manage linked
+ * Camera / LED devices without leaving the list view.
+ *
+ * Route: `/crosswalks`
+ */
 export function Crosswalks() {
   const navigate = useNavigate();
   const { 
@@ -29,13 +39,12 @@ export function Crosswalks() {
 
   const {
     formDialog,
-    deleteDialog,
     submitting,
     handleCreate,
     handleDelete,
     handleFormSubmit,
     closeFormDialog,
-    DeleteDialog
+    DeleteDialog,
   } = useCRUDPage({
     createFn: createCrosswalk,
     updateFn: updateCrosswalk,

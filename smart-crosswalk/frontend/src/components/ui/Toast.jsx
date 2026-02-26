@@ -1,8 +1,20 @@
+import PropTypes from 'prop-types';
 import { createContext, useContext, useState, useCallback } from 'react';
 import { cn } from '../../utils';
 
 const ToastContext = createContext(null);
 
+/**
+ * ToastProvider — context provider that exposes `addToast` / `removeToast`.
+ * Renders a fixed `ToastContainer` at the bottom-left of the viewport.
+ * Must wrap any component that calls `useToast()`.
+ *
+ * @example
+ * // In App.jsx
+ * <ToastProvider>
+ *   <App />
+ * </ToastProvider>
+ */
 export function ToastProvider({ children }) {
   const [toasts, setToasts] = useState([]);
 
@@ -90,3 +102,27 @@ function Toast({ message, type = 'info', onClose }) {
     </div>
   );
 }
+
+ToastProvider.propTypes = {
+  children: PropTypes.node.isRequired,
+};
+
+ToastContainer.propTypes = {
+  toasts: PropTypes.arrayOf(
+    PropTypes.shape({
+      id: PropTypes.number.isRequired,
+      message: PropTypes.string.isRequired,
+      type: PropTypes.oneOf(['success', 'error', 'warning', 'info']).isRequired,
+    })
+  ).isRequired,
+  removeToast: PropTypes.func.isRequired,
+};
+
+Toast.propTypes = {
+  /** Text content of the notification */
+  message: PropTypes.string.isRequired,
+  /** Colour / icon theme */
+  type: PropTypes.oneOf(['success', 'error', 'warning', 'info']),
+  /** Called when the close button is clicked */
+  onClose: PropTypes.func.isRequired,
+};

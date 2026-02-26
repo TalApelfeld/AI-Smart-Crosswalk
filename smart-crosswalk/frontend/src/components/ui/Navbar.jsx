@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 import { Link, useLocation } from 'react-router-dom';
 import { cn } from '../../utils';
 import { Logo } from '../ui';
@@ -8,6 +9,14 @@ const navLinks = [
   { to: '/crosswalks', label: 'Crosswalks' }
 ];
 
+/**
+ * Navbar — sticky top navigation bar.
+ * Highlights the active route via `useLocation`.
+ * Requires a `<BrowserRouter>` ancestor.
+ *
+ * @example
+ * <Navbar />
+ */
 export function Navbar() {
   const location = useLocation();
 

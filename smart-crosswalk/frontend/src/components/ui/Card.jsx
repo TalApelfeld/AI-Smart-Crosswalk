@@ -1,5 +1,13 @@
+import PropTypes from 'prop-types';
 import { cn } from '../../utils';
 
+/**
+ * Card — base surface container with rounded corners and a drop shadow.
+ * Compose with CardHeader / CardTitle / CardDescription / CardContent.
+ *
+ * @example
+ * <Card><CardContent>Hello</CardContent></Card>
+ */
 export function Card({ children, className, ...props }) {
   return (
     <div className={cn('card', className)} {...props}>
@@ -39,3 +47,11 @@ export function CardContent({ children, className }) {
     </div>
   );
 }
+
+const childrenShape = { children: PropTypes.node };
+
+Card.propTypes            = { ...childrenShape, className: PropTypes.string };
+CardHeader.propTypes      = { ...childrenShape, className: PropTypes.string };
+CardTitle.propTypes       = { ...childrenShape, className: PropTypes.string };
+CardDescription.propTypes = { ...childrenShape, className: PropTypes.string };
+CardContent.propTypes     = { ...childrenShape, className: PropTypes.string };

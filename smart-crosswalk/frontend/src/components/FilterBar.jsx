@@ -1,5 +1,6 @@
+import PropTypes from 'prop-types';
 import { useState } from 'react';
-import { Button, Card, Badge, DateRangePicker, Select, Input } from './ui';
+import { Button, Card, Badge, DateRangePicker, Select, SearchInput } from './ui';
 
 // Static config per filter key — drives labels, types, and select options.
 const FILTER_CONFIG = {
@@ -8,6 +9,20 @@ const FILTER_CONFIG = {
   crosswalkSearch: { label: 'Search Crosswalk', type: 'search' },
 };
 
+/**
+ * FilterBar — collapsible panel with alert-specific filter controls.
+ * Supports danger-level select, crosswalk text search, and a date-range
+ * picker.  Renders an "Active" badge whenever any filter is non-default.
+ * Stateless regarding filter values; all state lives in the parent page.
+ *
+ * @example
+ * <FilterBar
+ *   filters={filters}
+ *   onFilterChange={setFilters}
+ *   onClear={clearFilters}
+ *   crosswalks={crosswalks}
+ * />
+ */
 export function FilterBar({ filters, onFilterChange, onClear, crosswalks = [] }) {
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -55,33 +70,12 @@ export function FilterBar({ filters, onFilterChange, onClear, crosswalks = [] })
                       onChange={(dateRange) => handleChange(key, dateRange)}
                     />
                   ) : key === 'crosswalkSearch' ? (
-                    <div className="relative">
-                      <Input
-                        label={config.label}
-                        value={value || ''}
-                        onChange={(val) => handleChange(key, val)}
-                        placeholder="Search by city, street, or number..."
-                        className="[&_input]:pl-9"
-                      />
-                      <svg
-                        className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none"
-                        fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                      >
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                          d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                      </svg>
-                      {value && (
-                        <Button
-                          variant="ghost" size="sm"
-                          onClick={() => handleChange(key, '')}
-                          className="absolute right-1 top-1/2 -translate-y-1/2 !p-1 text-gray-400 hover:text-gray-600"
-                        >
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                          </svg>
-                        </Button>
-                      )}
-                    </div>
+                    <SearchInput
+                      label={config.label}
+                      value={value || ''}
+                      onChange={(val) => handleChange(key, val)}
+                      placeholder="Search by city, street, or number..."
+                    />
                   ) : key === 'crosswalkId' && crosswalks.length > 0 ? (
                     <Select
                       label={config.label}
@@ -116,5 +110,32 @@ export function FilterBar({ filters, onFilterChange, onClear, crosswalks = [] })
     </Card>
   );
 }
+
+FilterBar.propTypes = {
+  /** Current filter state object (keys: dangerLevel, crosswalkSearch, dateRange) */
+  filters: PropTypes.shape({
+    dangerLevel:     PropTypes.string,
+    crosswalkSearch: PropTypes.string,
+    dateRange: PropTypes.shape({
+      startDate: PropTypes.string,
+      endDate:   PropTypes.string,
+    }),
+  }).isRequired,
+  /** Called with the full updated filters object on each change */
+  onFilterChange: PropTypes.func.isRequired,
+  /** Called when the "Clear All" button is clicked */
+  onClear: PropTypes.func.isRequired,
+  /** List of crosswalk documents for the crosswalk-ID filter */
+  crosswalks: PropTypes.arrayOf(
+    PropTypes.shape({
+      _id:      PropTypes.string.isRequired,
+      location: PropTypes.shape({
+        city:   PropTypes.string,
+        street: PropTypes.string,
+        number: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+      }),
+    })
+  ),
+};
 
 

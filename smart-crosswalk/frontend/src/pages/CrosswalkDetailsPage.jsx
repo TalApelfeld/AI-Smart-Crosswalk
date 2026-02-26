@@ -3,6 +3,16 @@ import { useCrosswalkDetails } from '../hooks';
 import { Card, CardHeader, CardTitle, CardContent, Button, LoadingScreen, DateRangePicker, Select, Pagination } from '../components/ui';
 import { GenericCRUDLayout, GenericDetailCard, ItemCard } from '../components';
 
+/**
+ * CrosswalkDetailsPage — detail view for a single crosswalk.
+ *
+ * Shows crosswalk metadata (via `ItemCard variant="detail"`) and a paginated,
+ * filterable events history list (via `GenericCRUDLayout` with `type="alert"`).
+ * Filters (date range + danger level) and pagination are managed by the
+ * `useCrosswalkDetails` hook.
+ *
+ * Route: `/crosswalks/:id`
+ */
 export function CrosswalkDetailsPage() {
   const { id } = useParams();
   const navigate = useNavigate();

@@ -1,3 +1,16 @@
+import PropTypes from 'prop-types';
+
+/**
+ * PageHeader — top-of-page title block with optional description and
+ * action slot (right-aligned on wider screens).
+ *
+ * @example
+ * <PageHeader
+ *   title="Crosswalks"
+ *   description="Manage crosswalk locations"
+ *   actions={<Button onClick={onCreate}>Add</Button>}
+ * />
+ */
 export function PageHeader({ title, description, actions }) {
   return (
     <div className="mb-8">
@@ -15,3 +28,12 @@ export function PageHeader({ title, description, actions }) {
     </div>
   );
 }
+
+PageHeader.propTypes = {
+  /** Main heading */
+  title: PropTypes.string.isRequired,
+  /** Subtitle shown beneath the heading */
+  description: PropTypes.string,
+  /** Right-side action slot — usually a `<Button>` or group of buttons */
+  actions: PropTypes.node,
+};

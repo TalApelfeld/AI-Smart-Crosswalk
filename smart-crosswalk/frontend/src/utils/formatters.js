@@ -1,5 +1,18 @@
-// Centralized formatters for consistent data display across the app.
+/**
+ * formatters.js — centralised pure-function formatting layer.
+ *
+ * All functions are stateless and side-effect-free.  Import them wherever
+ * you need consistent data display without coupling to React.
+ *
+ * @module formatters
+ */
 
+/**
+ * Formats a date value into a human-readable localised string.
+ * @param {string|Date|null} date
+ * @param {Intl.DateTimeFormatOptions} [options] - Overrides for toLocaleDateString
+ * @returns {string}
+ */
 export function formatDate(date, options = {}) {
   if (!date) return 'N/A';
   try {
@@ -13,9 +26,19 @@ export function formatDate(date, options = {}) {
   }
 }
 
-// Returns the last `length` characters of a MongoDB ObjectId.
+/**
+ * Returns the last `length` characters of a MongoDB ObjectId for compact display.
+ * @param {string|null} id
+ * @param {number} [length=8]
+ * @returns {string}
+ */
 export const formatId = (id, length = 8) => id ? id.slice(-length) : 'N/A';
 
+/**
+ * Maps a camera/LED status string to a display label and a Badge variant.
+ * @param {string|null} status
+ * @returns {{ text: string, variant: string }}
+ */
 export function formatStatus(status) {
   const map = {
     active:      { text: 'Active',      variant: 'success' },
@@ -27,13 +50,23 @@ export function formatStatus(status) {
   return map[status.toLowerCase()] ?? { text: status, variant: 'default' };
 }
 
-// Normalises relative paths and plain filenames to a full /uploads URL.
+/**
+ * Normalises relative paths and plain filenames to a full `/uploads` URL
+ * that Express can serve.
+ * @param {string|null} url
+ * @returns {string|null}
+ */
 export function getImageUrl(url) {
   if (!url) return null;
   if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('/uploads')) return url;
   return url.startsWith('/') ? url : `/uploads/alerts/${url}`;
 }
 
+/**
+ * Combines a location object into a single display string.
+ * @param {{ city?: string, street?: string, number?: string|number }|null} location
+ * @returns {string}
+ */
 export function formatLocation(location) {
   if (!location) return 'Unknown Location';
   const { city, street, number } = location;
@@ -41,6 +74,12 @@ export function formatLocation(location) {
   return parts.length ? parts.join(', ') : 'Unknown Location';
 }
 
+/**
+ * Returns display metadata for a danger level: a Badge variant, a left-border
+ * Tailwind class, a human label, and an icon character.
+ * @param {'LOW'|'MEDIUM'|'HIGH'} level
+ * @returns {{ variant: string, border: string, label: string, icon: string }}
+ */
 export function formatDangerLevel(level) {
   const configs = {
     LOW:    { variant: 'warning', border: 'border-l-yellow-400', label: 'Low',    icon: '🚨' },

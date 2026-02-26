@@ -1,11 +1,21 @@
+import PropTypes from 'prop-types';
 import { memo } from 'react';
 import { Card, CardContent, Button, Badge } from './ui';
 import { formatId, formatLocation, formatStatus, formatDate, formatDangerLevel, getImageUrl } from '../utils';
 
 // ─── GenericDetailCard ────────────────────────────────────────────────────────
-// Low-level card renderer. Accepts explicit header/fields/actions/image props.
-// Used directly in pages (Dashboard, CrosswalkDetailsPage) and internally by ItemCard.
-
+/**
+ * GenericDetailCard — low-level card renderer.
+ * Accepts explicit `header`, `image`, `fields`, and `actions` props and
+ * renders them in a consistent layout.  Used directly in pages (Dashboard,
+ * CrosswalkDetailsPage) and as the output of every `ItemCard` config.
+ *
+ * @example
+ * <GenericDetailCard
+ *   header={{ icon: '🚆', title: 'API Server' }}
+ *   fields={[{ label: 'Status', component: <StatusIndicator status="online" /> }]}
+ * />
+ */
 export function GenericDetailCard({ header, image, fields = [], actions = [], onClick, className = '' }) {
   return (
     <Card
@@ -83,7 +93,45 @@ export function GenericDetailCard({ header, image, fields = [], actions = [], on
     </Card>
   );
 }
+const fieldShape = PropTypes.shape({
+  label:          PropTypes.string,
+  value:          PropTypes.node,
+  component:      PropTypes.node,
+  valueClassName: PropTypes.string,
+  break:          PropTypes.bool,
+});
 
+const actionShape = PropTypes.shape({
+  label:    PropTypes.string.isRequired,
+  onClick:  PropTypes.func,
+  variant:  PropTypes.string,
+  href:     PropTypes.string,
+  target:   PropTypes.string,
+  rel:      PropTypes.string,
+  disabled: PropTypes.bool,
+});
+
+GenericDetailCard.propTypes = {
+  /** Top strip: icon, title, subtitle */
+  header: PropTypes.shape({
+    icon:     PropTypes.string,
+    title:    PropTypes.string,
+    subtitle: PropTypes.string,
+  }),
+  /** Optional thumbnail shown left of the fields */
+  image: PropTypes.shape({
+    url:         PropTypes.string,
+    alt:         PropTypes.string,
+    fallbackIcon: PropTypes.string,
+  }),
+  /** List of label–value rows */
+  fields: PropTypes.arrayOf(fieldShape),
+  /** Buttons rendered below the fields */
+  actions: PropTypes.arrayOf(actionShape),
+  /** Makes the card clickable (whole card) */
+  onClick: PropTypes.func,
+  className: PropTypes.string,
+};
 // ─── Shared helpers ───────────────────────────────────────────────────────────
 
 const none        = (text) => <span className="text-sm text-surface-500">{text}</span>;
@@ -170,8 +218,16 @@ const cardConfigs = {
 };
 
 // ─── ItemCard ─────────────────────────────────────────────────────────────────
-// Config-driven card. Use: <ItemCard item={x} type="crosswalk" variant="detail" />
-
+/**
+ * ItemCard — config-driven card facade.
+ * Looks up `${type}-${variant}` in the internal `cardConfigs` registry and
+ * delegates all rendering to `GenericDetailCard`.
+ *
+ * @example
+ * <ItemCard item={crosswalk} type="crosswalk" variant="list"
+ *   onEdit={handleEdit} onDelete={handleDelete} onClick={handleClick} />
+ * <ItemCard item={crosswalk} type="crosswalk" variant="detail" />
+ */
 export function ItemCard({ item, type, variant, onClick, ...props }) {
   const config = cardConfigs[`${type}-${variant}`];
   if (!config) { console.error(`ItemCard: unknown "${type}-${variant}"`); return null; }
@@ -186,14 +242,50 @@ export function ItemCard({ item, type, variant, onClick, ...props }) {
     />
   );
 }
-
+ItemCard.propTypes = {
+  /** Data object to display */
+  item:    PropTypes.object.isRequired,
+  /** Entity type key (crosswalk | alert) */
+  type:    PropTypes.oneOf(['crosswalk', 'alert']).isRequired,
+  /** Layout variant key (list | detail | history) */
+  variant: PropTypes.oneOf(['list', 'detail', 'history']).isRequired,
+  /** Called with the item when the card is clicked */
+  onClick: PropTypes.func,
+};
 // ─── List adapters ────────────────────────────────────────────────────────────
 // Thin wrappers used by PageLayout's componentRegistry → GenericList.
 
+/**
+ * CrosswalkItem — memoised adapter for crosswalk list rows.
+ * Rendered by `GenericList` when `type="crosswalk"`.
+ */
 export const CrosswalkItem = memo(({ item, onEdit, onDelete, onClick }) =>
   <ItemCard item={item} type="crosswalk" variant="list" onClick={onClick} onEdit={onEdit} onDelete={onDelete} />
 );
 
+CrosswalkItem.displayName = 'CrosswalkItem';
+
+CrosswalkItem.propTypes = {
+  item:     PropTypes.object.isRequired,
+  onEdit:   PropTypes.func,
+  onDelete: PropTypes.func,
+  onClick:  PropTypes.func,
+};
+
+/**
+ * AlertItem — memoised adapter for alert list / history rows.
+ * Rendered by `GenericList` when `type="alert"`.
+ */
 export const AlertItem = memo(({ item, variant = 'list', onEdit, onDelete, onViewDetails }) =>
   <ItemCard item={item} type="alert" variant={variant} onEdit={onEdit} onDelete={onDelete} onViewDetails={onViewDetails} />
 );
+
+AlertItem.displayName = 'AlertItem';
+
+AlertItem.propTypes = {
+  item:          PropTypes.object.isRequired,
+  variant:       PropTypes.oneOf(['list', 'history']),
+  onEdit:        PropTypes.func,
+  onDelete:      PropTypes.func,
+  onViewDetails: PropTypes.func,
+};

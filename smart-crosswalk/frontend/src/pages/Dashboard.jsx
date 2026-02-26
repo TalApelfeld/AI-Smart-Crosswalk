@@ -7,6 +7,18 @@ import {
 import { ItemDialog, StatsGrid, GenericCRUDLayout, GenericDetailCard, useCRUDPage } from '../components';
 import { useAlerts, useCrosswalks, useCameras, useLEDs } from '../hooks';
 
+/**
+ * Dashboard — top-level overview page.
+ *
+ * Displays aggregate stats (alerts + crosswalks), a system-status card, quick
+ * action buttons to add a Camera or LED, and an optional toggleable device
+ * management grid (Cameras + LEDs).
+ *
+ * Data is fetched via the four entity hooks; each device type uses its own
+ * `useCRUDPage` instance to keep create/edit/delete dialog state isolated.
+ *
+ * Route: `/`
+ */
 export function Dashboard() {
   const { stats: alertStats,     loading: alertsLoading     } = useAlerts();
   const { stats: crosswalkStats, loading: crosswalksLoading } = useCrosswalks();

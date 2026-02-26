@@ -1,11 +1,13 @@
 import { Routes, Route } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
-import { Navbar } from './components/ui';
+import { Navbar, ToastProvider } from './components/ui';
 import { Dashboard, Alerts, Crosswalks, CrosswalkDetailsPage } from './pages';
-import { ToastProvider } from './components/ui';
 
-// Global cache shared across all pages. Data fetched once is reused for 5 minutes without re-fetching.
+/**
+ * queryClient — global React-Query cache shared across all pages.
+ * Data fetched once is reused for 5 minutes before being considered stale.
+ */
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -17,7 +19,15 @@ const queryClient = new QueryClient({
   },
 });
 
-// Root component — wraps the app with the cache provider, toast notifications, and page routing.
+/**
+ * App — root component.
+ * Wraps the entire application with:
+ * - `QueryClientProvider` (global server-state cache)
+ * - `ToastProvider` (portal-based notification layer)
+ * - `Navbar` (sticky top bar)
+ * - `<Routes>` (four page routes)
+ * - `ReactQueryDevtools` (development only)
+ */
 function App() {
   return (
     <QueryClientProvider client={queryClient}>

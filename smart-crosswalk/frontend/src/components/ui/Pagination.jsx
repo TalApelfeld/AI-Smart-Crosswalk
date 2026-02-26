@@ -1,9 +1,16 @@
+import PropTypes from 'prop-types';
 import { Button } from './Button';
 
-// ─── Pagination ───────────────────────────────────────────────────────────────
-// Renders numbered page navigation with ellipsis for gaps.
-// Returns null when totalPages <= 1 so callers need no conditional wrapping.
-
+/**
+ * Pagination — numbered page navigation with automatic ellipsis.
+ * Returns `null` when `totalPages <= 1` — no need to guard at the call-site.
+ *
+ * @example
+ * <Pagination
+ *   currentPage={page} totalPages={10}
+ *   hasMore={hasMore} onPageChange={goToPage}
+ * />
+ */
 export function Pagination({ currentPage, totalPages, hasMore, onPageChange }) {
   if (totalPages <= 1) return null;
 
@@ -48,3 +55,14 @@ export function Pagination({ currentPage, totalPages, hasMore, onPageChange }) {
     </div>
   );
 }
+
+Pagination.propTypes = {
+  /** Currently active page (1-based) */
+  currentPage: PropTypes.number.isRequired,
+  /** Total number of pages */
+  totalPages: PropTypes.number.isRequired,
+  /** Whether a next page exists */
+  hasMore: PropTypes.bool.isRequired,
+  /** Called with the new page number when the user navigates */
+  onPageChange: PropTypes.func.isRequired,
+};

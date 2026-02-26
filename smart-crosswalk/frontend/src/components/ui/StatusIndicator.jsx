@@ -1,3 +1,5 @@
+import PropTypes from 'prop-types';
+
 const STATUS_STYLES = {
   online:    { text: 'text-success-600', dot: 'bg-success-500'  },
   connected: { text: 'text-success-600', dot: 'bg-success-500'  },
@@ -21,3 +23,10 @@ export function StatusIndicator({ status = 'online', label }) {
     </span>
   );
 }
+
+StatusIndicator.propTypes = {
+  /** Connection / system state — drives the dot colour */
+  status: PropTypes.oneOf(['online', 'connected', 'offline', 'warning']),
+  /** Override the default capitalised status label */
+  label: PropTypes.string,
+};

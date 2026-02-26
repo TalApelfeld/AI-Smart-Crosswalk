@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 import { useState, useEffect } from 'react';
 import {
   Dialog, DialogHeader, DialogTitle, DialogContent, DialogFooter,
@@ -64,7 +65,11 @@ function renderField(field, j, formData, onFieldChange) {
 }
 
 // ─── FormDialog — internal renderer ──────────────────────────────────────────
-
+/**
+ * FormDialog — generic form-inside-a-dialog.
+ * Renders `sections` of fields using `renderField`, plus Cancel / Submit
+ * buttons.  Internal; not exported.
+ */
 function FormDialog({
   open, onClose, onSubmit, title, description,
   sections, formData, onFieldChange,
@@ -98,7 +103,11 @@ function FormDialog({
 }
 
 // ─── TabDialog — internal renderer ───────────────────────────────────────────
-
+/**
+ * TabDialog — dialog with a horizontal tab bar.
+ * Each tab either renders a mini-form or a device-linking panel.
+ * Internal; not exported.
+ */
 function TabDialog({ tabsConfig, item, open, onClose, loading, context }) {
   const { activeTab, setActiveTab, state, setTabField } = useTabState(tabsConfig, item, open);
   if (!item || !tabsConfig) return null;
@@ -327,9 +336,24 @@ const dialogConfigs = {
 };
 
 // ─── ItemDialog ───────────────────────────────────────────────────────────────
-// Config-driven dialog — looks up type in dialogConfigs.
-// context: extra data needed by sections (e.g. { cameras, leds, crosswalks })
-
+/**
+ * ItemDialog — config-driven create/edit dialog facade.
+ * Looks up `type` in the internal `dialogConfigs` registry and renders
+ * either a `FormDialog` (single form) or a `TabDialog` (tabbed panels).
+ *
+ * @example
+ * // Create / edit a camera
+ * <ItemDialog type="camera"
+ *   open={formDialog.open} item={formDialog.item}
+ *   onClose={closeFormDialog} onSubmit={handleFormSubmit}
+ *   loading={submitting} />
+ *
+ * // Edit crosswalk with tabbed panels
+ * <ItemDialog type="crosswalk-edit"
+ *   open={editDialog.open} item={editDialog.crosswalk}
+ *   onClose={closeEdit} loading={busy}
+ *   context={{ cameras, leds, onUpdate, onLinkCamera, ... }} />
+ */
 export function ItemDialog({ type, item, open, onClose, onSubmit, loading, context = {} }) {
   const config = dialogConfigs[type];
   if (!config) {
@@ -360,3 +384,21 @@ export function ItemDialog({ type, item, open, onClose, onSubmit, loading, conte
     />
   );
 }
+
+ItemDialog.propTypes = {
+  /** Key into the internal dialogConfigs registry */
+  type: PropTypes.oneOf(['camera', 'led', 'alert', 'crosswalk', 'crosswalk-edit']).isRequired,
+  /** Item being edited, or `null` / `undefined` for create mode */
+  item: PropTypes.object,
+  /** Controls dialog visibility */
+  open: PropTypes.bool.isRequired,
+  /** Called to dismiss the dialog without saving */
+  onClose: PropTypes.func.isRequired,
+  /** Called with the prepared form data on submit (form dialogs only) */
+  onSubmit: PropTypes.func,
+  /** Shows spinner on the submit button */
+  loading: PropTypes.bool,
+  /** Extra data injected into section builders and tab handlers
+   *  e.g. `{ cameras, leds, crosswalks, onLinkCamera, … }` */
+  context: PropTypes.object,
+};

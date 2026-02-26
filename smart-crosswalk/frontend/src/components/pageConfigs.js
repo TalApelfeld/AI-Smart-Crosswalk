@@ -1,3 +1,17 @@
+/**
+ * pageConfigs — static per-page configuration objects.
+ *
+ * Each entry provides the `title`, `type`, search options, `stats` factory,
+ * and empty-state strings consumed by `GenericCRUDLayout`.  Centralising
+ * these values here keeps page components free of hard-coded strings and
+ * makes it easy to add a new entity type in one place.
+ *
+ * @example
+ * // Inside Crosswalks.jsx
+ * const cfg = pageConfigs.crosswalk;
+ * <GenericCRUDLayout {...cfg} stats={cfg.stats(crosswalks)} ... />
+ */
+
 // ─── pageConfigs ──────────────────────────────────────────────────────────────
 // Per-page static config: title, description, type, search, stats, empty state.
 // Consumed by GenericCRUDLayout via <Page> components.

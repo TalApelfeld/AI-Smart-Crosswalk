@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 import { cn } from '../../utils';
 
 const variants = {
@@ -14,6 +15,14 @@ const sizes = {
   lg: 'px-6 py-3 text-lg'
 };
 
+/**
+ * Button — universal action trigger.
+ * Supports multiple visual variants, size tokens, and a built-in loading
+ * spinner that disables the element while an async action is running.
+ *
+ * @example
+ * <Button variant="primary" loading={saving} onClick={save}>Save</Button>
+ */
 export function Button({
   children,
   variant = 'primary',
@@ -63,3 +72,20 @@ export function Button({
     </button>
   );
 }
+
+Button.propTypes = {
+  /** Button content */
+  children: PropTypes.node.isRequired,
+  /** Visual style variant */
+  variant: PropTypes.oneOf(['primary', 'secondary', 'danger', 'success', 'ghost']),
+  /** Size token */
+  size: PropTypes.oneOf(['sm', 'md', 'lg']),
+  /** Extra Tailwind classes */
+  className: PropTypes.string,
+  /** Disables the button */
+  disabled: PropTypes.bool,
+  /** Shows a spinner and disables the button */
+  loading: PropTypes.bool,
+  /** Stretches the button to 100 % of its container */
+  fullWidth: PropTypes.bool,
+};

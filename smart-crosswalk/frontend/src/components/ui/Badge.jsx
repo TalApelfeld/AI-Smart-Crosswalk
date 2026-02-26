@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 import { cn } from '../../utils';
 
 const variants = {
@@ -9,6 +10,13 @@ const variants = {
   danger: 'badge-danger'
 };
 
+/**
+ * Badge — small inline label used to communicate status or category.
+ *
+ * @example
+ * <Badge variant="success">Active</Badge>
+ * <Badge variant="danger">High</Badge>
+ */
 export function Badge({ children, variant = 'default', className, ...props }) {
   return (
     <span className={cn(variants[variant], className)} {...props}>
@@ -16,3 +24,12 @@ export function Badge({ children, variant = 'default', className, ...props }) {
     </span>
   );
 }
+
+Badge.propTypes = {
+  /** Label content */
+  children: PropTypes.node.isRequired,
+  /** Colour theme */
+  variant: PropTypes.oneOf(['default', 'primary', 'success', 'warning', 'orange', 'danger']),
+  /** Extra Tailwind classes */
+  className: PropTypes.string,
+};

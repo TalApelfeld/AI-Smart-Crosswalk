@@ -1,16 +1,35 @@
 import { useState } from 'react';
 import { useToast, ConfirmDialog } from './ui';
 
-// ─── useCRUDPage ──────────────────────────────────────────────────────────────
-// Shared hook for list pages that need create / edit / delete dialogs.
-// Returns open/close handlers, form state, and a ready-to-render <DeleteDialog>.
-//
-// Usage:
-//   const { formDialog, handleCreate, handleEdit, handleDelete,
-//           handleFormSubmit, closeFormDialog, DeleteDialog } = useCRUDPage({
-//     createFn, updateFn, deleteFn, entityName: 'Crosswalk'
-//   });
-
+/**
+ * useCRUDPage — shared hook for list pages that manage create / edit / delete
+ * dialogs.  Returns open/close handlers, form state, a `submitting` flag, and
+ * a pre-wired `<DeleteDialog />` component ready to drop into JSX.
+ *
+ * The hook is intentionally "dumb" about the shape of the entities — all
+ * persistence logic is injected via `createFn`, `updateFn`, and `deleteFn`.
+ *
+ * @param {object} options
+ * @param {Function} options.createFn      - Async fn called with formData on create
+ * @param {Function} [options.updateFn]    - Async fn called with (id, formData) on edit
+ * @param {Function} options.deleteFn      - Async fn called with (id) on delete
+ * @param {string}   [options.entityName]  - Used in toast messages (default: "Item")
+ * @param {Function} [options.deleteMessage] - fn(item) → string for the confirm dialog
+ * @param {Function} [options.onSuccess]   - Called after a successful create/edit/delete
+ *
+ * @returns {{ formDialog, deleteDialog, submitting,
+ *             handleCreate, handleEdit, handleDelete,
+ *             handleFormSubmit, closeFormDialog, DeleteDialog }}
+ *
+ * @example
+ * const { formDialog, handleCreate, handleEdit, handleDelete,
+ *         handleFormSubmit, closeFormDialog, DeleteDialog } = useCRUDPage({
+ *   createFn: createCrosswalk,
+ *   updateFn: updateCrosswalk,
+ *   deleteFn: deleteCrosswalk,
+ *   entityName: 'Crosswalk',
+ * });
+ */
 export function useCRUDPage({ createFn, updateFn, deleteFn, entityName = 'Item', deleteMessage, onSuccess }) {
   const { addToast } = useToast();
   const [formDialog,   setFormDialog]   = useState({ open: false, item: null });

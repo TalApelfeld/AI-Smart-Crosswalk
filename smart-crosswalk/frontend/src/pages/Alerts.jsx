@@ -2,6 +2,16 @@ import { useState } from 'react';
 import { GenericCRUDLayout, useCRUDPage, ItemDialog, FilterBar, pageConfigs } from '../components';
 import { useAlerts, useCrosswalks } from '../hooks';
 
+/**
+ * Alerts — CRUD list page for detection alerts.
+ *
+ * Shows a stat-annotated list of all alerts from all crosswalks.
+ * Includes a collapsible FilterBar for danger-level, crosswalk-search, and
+ * date-range filtering.  Create / edit / delete are wired through
+ * `useCRUDPage` and rendered by `ItemDialog`.
+ *
+ * Route: `/alerts`
+ */
 export function Alerts() {
   const { alerts, stats, loading, error, updateAlert, deleteAlert, createAlert } = useAlerts();
   const { crosswalks } = useCrosswalks();
@@ -14,14 +24,13 @@ export function Alerts() {
 
   const {
     formDialog,
-    deleteDialog,
     submitting,
     handleCreate,
     handleEdit,
     handleDelete,
     handleFormSubmit,
     closeFormDialog,
-    DeleteDialog
+    DeleteDialog,
   } = useCRUDPage({
     createFn: createAlert,
     updateFn: updateAlert,

@@ -1,5 +1,6 @@
+import PropTypes from 'prop-types';
 import { useState } from 'react';
-import { PageHeader, LoadingScreen, Card, CardTitle, CardDescription, Button, Input, Badge } from './ui';
+import { PageHeader, LoadingScreen, Card, Button, Badge, SearchBar } from './ui';
 import { GenericDetailCard, CrosswalkItem, AlertItem } from './ItemCard';
 import { DeviceRowItem } from './DeviceRowItem';
 import { cn } from '../utils';
@@ -18,6 +19,13 @@ const COLOR = {
   danger:  { value: 'text-danger-600',   icon: 'bg-danger-50   text-danger-600'  },
 };
 
+/**
+ * StatsCard — single metric cell inside a StatsGrid.
+ * Renders a colour-tinted icon, a large numeric value, and a label.
+ *
+ * @example
+ * <StatsCard title="Total Alerts" value={42} icon="📋" color="primary" />
+ */
 export function StatsCard({ title, value, icon, color = 'primary', description }) {
   const v = COLOR[color] ?? COLOR.primary;
   return (
@@ -35,9 +43,30 @@ export function StatsCard({ title, value, icon, color = 'primary', description }
     </div>
   );
 }
-
+StatsCard.propTypes = {
+  /** Metric label */
+  title: PropTypes.string.isRequired,
+  /** Numeric (or string) metric value */
+  value: PropTypes.oneOfType([PropTypes.number, PropTypes.string]).isRequired,
+  /** Emoji or text icon displayed above the value */
+  icon: PropTypes.string,
+  /** Colour token that determines icon bg + value text colour */
+  color: PropTypes.oneOf(['primary', 'success', 'warning', 'orange', 'danger']),
+  /** Optional secondary line beneath the metric */
+  description: PropTypes.string,
+};
 // ─── StatsGrid ────────────────────────────────────────────────────────────────
-
+/**
+ * StatsGrid — responsive grid of `StatsCard` tiles inside a card shell.
+ * Dividers are drawn between cells automatically.
+ * Returns `null` when the `stats` array is empty.
+ *
+ * @example
+ * <StatsGrid stats={[
+ *   { title: 'Total', value: 10, icon: '📋', color: 'primary' },
+ *   { title: 'High',  value: 3,  icon: '🚨', color: 'danger'  },
+ * ]} />
+ */
 export function StatsGrid({ stats = [], cols }) {
   if (!stats.length) return null;
   const colCount = cols ?? stats.length;
@@ -54,7 +83,20 @@ export function StatsGrid({ stats = [], cols }) {
     </div>
   );
 }
+const statShape = PropTypes.shape({
+  title:       PropTypes.string.isRequired,
+  value:       PropTypes.oneOfType([PropTypes.number, PropTypes.string]).isRequired,
+  icon:        PropTypes.string,
+  color:       PropTypes.string,
+  description: PropTypes.string,
+});
 
+StatsGrid.propTypes = {
+  /** Array of stat objects passed directly to `StatsCard` */
+  stats: PropTypes.arrayOf(statShape),
+  /** Override the number of grid columns (defaults to `stats.length`) */
+  cols: PropTypes.number,
+};
 // ─── Component Registry ───────────────────────────────────────────────────────
 // Central type → component mapping.
 
@@ -71,7 +113,18 @@ const getComponentForType = (type) => {
 };
 
 // ─── GenericList ──────────────────────────────────────────────────────────────
-
+/**
+ * GenericList — polymorphic item renderer.
+ * Looks up `type` in the `componentRegistry` to decide whether to render a
+ * `<table>` (layout `'row'`) or a stacked `<div>` list (layout `'card'`).
+ * Falls back to an inline error card for unknown types.
+ *
+ * @example
+ * <GenericList
+ *   items={cameras} type="camera"
+ *   itemProps={{ onEdit: handleEdit, onDelete: handleDelete }}
+ * />
+ */
 export function GenericList({
   items = [],
   type,
@@ -145,9 +198,44 @@ export function GenericList({
     </div>
   );
 }
-
+GenericList.propTypes = {
+  /** Rendered items */
+  items: PropTypes.array,
+  /** Registry key that determines the component and layout */
+  type: PropTypes.oneOf(['crosswalk', 'alert', 'camera', 'led']).isRequired,
+  /** Extra props forwarded to every item component (e.g. onEdit, onDelete) */
+  itemProps: PropTypes.object,
+  /** Column descriptors for table layouts */
+  columns: PropTypes.arrayOf(
+    PropTypes.shape({ header: PropTypes.string, key: PropTypes.string, align: PropTypes.string })
+  ),
+  /** Returns a unique key for each item */
+  keyExtractor: PropTypes.func,
+  /** Rendered when the list is empty */
+  emptyState: PropTypes.node,
+  /** Wrapper div className for card lists */
+  wrapperClassName: PropTypes.string,
+  /** Applied to each item's wrapper div */
+  itemWrapperClassName: PropTypes.string,
+};
 // ─── GenericCRUDLayout ────────────────────────────────────────────────────────
-
+/**
+ * GenericCRUDLayout — full-page section for any entity type.
+ * Composes: PageHeader + optional StatsGrid + optional search bar +
+ * optional filtersSection + GenericList.
+ * Handles loading and error states internally.
+ *
+ * @example
+ * // Inside Crosswalks.jsx
+ * <GenericCRUDLayout
+ *   {...pageConfigs.crosswalk}
+ *   stats={cfg.stats(crosswalks)}
+ *   items={crosswalks} allItems={crosswalks}
+ *   loading={loading} error={error}
+ *   createButton={{ text: 'Add Crosswalk', onClick: handleCreate }}
+ *   itemProps={{ onEdit: handleEdit, onDelete: handleDelete, onClick: navigate }}
+ * />
+ */
 export function GenericCRUDLayout({
   title, description,
   createButton, headerActions, headerBadges,
@@ -208,35 +296,14 @@ export function GenericCRUDLayout({
 
       {/* Search */}
       {searchEnabled && (
-        <Card className="!p-4 shadow-sm">
-          <div className="flex items-center gap-3 mb-3">
-            <CardTitle>🔍 Search & Filter</CardTitle>
-          </div>
-          <div className="relative">
-            <Input
-              value={searchQuery}
-              onChange={(v) => setSearchQuery(v)}
-              placeholder={searchPlaceholder}
-              className="[&_input]:pl-10"
-            />
-            <svg className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
-            {searchQuery && (
-              <Button variant="ghost" size="sm" onClick={() => setSearchQuery('')}
-                className="absolute right-1 top-1/2 -translate-y-1/2 !p-1 text-gray-400 hover:text-gray-600">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </Button>
-            )}
-          </div>
-          {searchQuery && allItems && (
-            <CardDescription className="mt-2">
-              Found {filteredItems.length} of {allItems.length} {title.toLowerCase()}
-            </CardDescription>
-          )}
-        </Card>
+        <SearchBar
+          value={searchQuery}
+          onChange={setSearchQuery}
+          placeholder={searchPlaceholder}
+          filteredCount={filteredItems.length}
+          totalCount={allItems?.length}
+          entityLabel={title.toLowerCase()}
+        />
       )}
 
       {/* Filters */}
@@ -254,3 +321,42 @@ export function GenericCRUDLayout({
     </div>
   );
 }
+
+const createButtonShape = PropTypes.shape({
+  text:    PropTypes.string.isRequired,
+  onClick: PropTypes.func.isRequired,
+});
+
+const badgeShape = PropTypes.shape({
+  label:   PropTypes.string.isRequired,
+  variant: PropTypes.string,
+});
+
+GenericCRUDLayout.propTypes = {
+  /** Section heading */
+  title:             PropTypes.string.isRequired,
+  description:       PropTypes.string,
+  createButton:      createButtonShape,
+  headerActions:     PropTypes.node,
+  headerBadges:      PropTypes.arrayOf(badgeShape),
+  items:             PropTypes.array,
+  allItems:          PropTypes.array,
+  loading:           PropTypes.bool,
+  error:             PropTypes.string,
+  searchEnabled:     PropTypes.bool,
+  searchPlaceholder: PropTypes.string,
+  onSearch:          PropTypes.func,
+  onFilter:          PropTypes.func,
+  stats:             PropTypes.arrayOf(statShape),
+  statsCols:         PropTypes.number,
+  statsSection:      PropTypes.node,
+  filtersSection:    PropTypes.node,
+  type:              PropTypes.oneOf(['crosswalk', 'alert', 'camera', 'led']).isRequired,
+  itemProps:         PropTypes.object,
+  keyExtractor:      PropTypes.func,
+  emptyState:        PropTypes.node,
+  emptyIcon:         PropTypes.string,
+  emptyTitle:        PropTypes.string,
+  emptyMessage:      PropTypes.string,
+  wrapperClassName:  PropTypes.string,
+};
