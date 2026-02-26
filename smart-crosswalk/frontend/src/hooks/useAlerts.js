@@ -1,19 +1,24 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { alertsApi } from '../api';
 
+// Main hook that provides all alert data and actions to any component that uses it.
 export function useAlerts(options = {}) {
+  // autoRefresh: alerts re-fetch every 5 seconds by default to show new danger events quickly.
   const { autoRefresh = true, refreshInterval = 5000 } = options;
-  
-  const [alerts, setAlerts] = useState([]);
-  const [stats, setStats] = useState({ total: 0, low: 0, medium: 0, high: 0 });
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const queryClient = useQueryClient();
 
-  const fetchAlerts = useCallback(async () => {
-    try {
+  // Fetch all alerts from the server.
+  // By default this re-fetches automatically every 5 seconds to stay up to date.
+  const {
+    data: alerts = [],
+    isLoading: loading,
+    error,
+    refetch
+  } = useQuery({
+    queryKey: ['alerts'],
+    queryFn: async () => {
       const response = await alertsApi.getAll();
-      // API returns { success, count, data: alerts } - extract the alerts array
-      setAlerts(response?.data ?? []);
+      setAlerts(response.data);
       setError(null);
     } catch (err) {
       setError('Failed to fetch alerts');
@@ -26,8 +31,7 @@ export function useAlerts(options = {}) {
   const fetchStats = useCallback(async () => {
     try {
       const response = await alertsApi.getStats();
-      // API returns { success, data: stats } - extract stats
-      setStats(response?.data ?? { total: 0, low: 0, medium: 0, high: 0 });
+      setStats(response.data);
     } catch (err) {
       console.error('Failed to fetch stats:', err);
     }
@@ -84,8 +88,8 @@ export function useAlerts(options = {}) {
     alerts,
     stats,
     loading,
-    error,
-    refetch: fetchAlerts,
+    error: error?.message || null,
+    refetch,
     createAlert,
     updateAlert,
     deleteAlert

@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 import { useState } from 'react';
 import { Button } from '../ui';
 
@@ -33,7 +34,20 @@ const PRESETS = [
   { label: 'All Time', getValue: () => ({ startDate: null, endDate: null }) }
 ];
 
-export function DateRangePicker({ startDate, endDate, onChange, maxDate = new Date() }) {
+/**
+ * DateRangePicker — date range selector with quick presets and a
+ * custom date-input mode.  Calls `onChange({ startDate, endDate })`
+ * where each value is an ISO string or `null`.
+ *
+ * @example
+ * <DateRangePicker
+ *   label="Date Range"
+ *   startDate={filters.startDate}
+ *   endDate={filters.endDate}
+ *   onChange={(range) => updateFilters(range)}
+ * />
+ */
+export function DateRangePicker({ label, startDate, endDate, onChange, maxDate = new Date() }) {
   const [customMode, setCustomMode] = useState(false);
   const [localStart, setLocalStart] = useState(
     startDate ? new Date(startDate).toISOString().split('T')[0] : ''
@@ -64,6 +78,9 @@ export function DateRangePicker({ startDate, endDate, onChange, maxDate = new Da
 
   return (
     <div className="space-y-3">
+      {label && (
+        <label className="text-sm font-medium text-surface-700">{label}</label>
+      )}
       {/* Presets */}
       <div className="flex flex-wrap gap-2">
         {PRESETS.map((preset) => {
@@ -137,3 +154,16 @@ export function DateRangePicker({ startDate, endDate, onChange, maxDate = new Da
     </div>
   );
 }
+
+DateRangePicker.propTypes = {
+  /** Label rendered above the preset buttons */
+  label: PropTypes.string,
+  /** ISO string or null for the range start */
+  startDate: PropTypes.string,
+  /** ISO string or null for the range end */
+  endDate: PropTypes.string,
+  /** Called with `{ startDate: string|null, endDate: string|null }` */
+  onChange: PropTypes.func.isRequired,
+  /** Latest selectable date (defaults to today) */
+  maxDate: PropTypes.instanceOf(Date),
+};

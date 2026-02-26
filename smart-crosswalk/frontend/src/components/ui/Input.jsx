@@ -1,5 +1,14 @@
+import PropTypes from 'prop-types';
 import { cn } from '../../utils';
 
+/**
+ * Input — controlled text field with optional label, validation error, and
+ * disabled state.  Calls `onChange(value: string)` — not a native event —
+ * so it integrates naturally with form-state helpers.
+ *
+ * @example
+ * <Input label="City" value={city} onChange={setCity} required />
+ */
 export function Input({
   label,
   value,
@@ -45,3 +54,21 @@ export function Input({
     </div>
   );
 }
+
+Input.propTypes = {
+  /** Field label rendered above the input */
+  label: PropTypes.string,
+  /** Controlled value */
+  value: PropTypes.string,
+  /** Called with the new string value on every keystroke */
+  onChange: PropTypes.func.isRequired,
+  /** Native input type */
+  type: PropTypes.string,
+  placeholder: PropTypes.string,
+  /** Validation error message shown below the input */
+  error: PropTypes.string,
+  /** Adds a red asterisk to the label */
+  required: PropTypes.bool,
+  disabled: PropTypes.bool,
+  className: PropTypes.string,
+};

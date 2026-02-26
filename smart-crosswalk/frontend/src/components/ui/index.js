@@ -7,6 +7,11 @@ export { Dialog, DialogHeader, DialogTitle, DialogDescription, DialogContent, Di
 export { ConfirmDialog } from './ConfirmDialog';
 export { Select } from './Select';
 export { Input } from './Input';
+export { SearchInput } from './SearchInput';
+export { SearchBar } from './SearchBar';
 export { ToastProvider, useToast } from './Toast';
 export { DateRangePicker } from './DateRangePicker';
-
+export { Navbar } from './Navbar';
+export { PageHeader } from './PageHeader';
+export { StatusIndicator } from './StatusIndicator';
+export { Pagination } from './Pagination';

@@ -1,60 +1,62 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { ledsApi } from '../api';
 
+// Main hook that provides all LED data and actions to any component that uses it.
 export function useLEDs(options = {}) {
+  // autoRefresh: if true, the LED list will re-fetch from the server every refreshInterval ms.
   const { autoRefresh = false, refreshInterval = 10000 } = options;
-  
-  const [leds, setLEDs] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const queryClient = useQueryClient();
 
-  const fetchLEDs = useCallback(async () => {
-    try {
+  // Fetch all LED devices from the server and cache them.
+  // If autoRefresh is enabled, the list re-fetches automatically on an interval.
+  const {
+    data: leds = [],
+    isLoading: loading,
+    error,
+    refetch
+  } = useQuery({
+    queryKey: ['leds'],
+    queryFn: async () => {
       const response = await ledsApi.getAll();
-      setLEDs(response.data);
-      setError(null);
-    } catch (err) {
-      setError('Failed to fetch LEDs');
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+      return response.data;
+    },
+    refetchInterval: autoRefresh ? refreshInterval : false,
+  });
 
-  const createLED = useCallback(async (data) => {
-    try {
-      await ledsApi.create(data);
-      await fetchLEDs();
-    } catch (err) {
-      setError('Failed to create LED');
-      throw err;
-    }
-  }, [fetchLEDs]);
+  // Send a request to create a new LED device, then refresh the LEDs list.
+  // Also refreshes crosswalks because LEDs can be linked to them.
+  const createMutation = useMutation({
+    mutationFn: (data) => ledsApi.create(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries(['leds']);
+      queryClient.invalidateQueries(['crosswalks']); // LEDs are linked to crosswalks
+    },
+  });
 
-  const deleteLED = useCallback(async (id) => {
-    try {
-      await ledsApi.delete(id);
-      await fetchLEDs();
-    } catch (err) {
-      setError('Failed to delete LED');
-      throw err;
-    }
-  }, [fetchLEDs]);
+  // Send a request to delete an LED device, then refresh the LEDs list.
+  const deleteMutation = useMutation({
+    mutationFn: (id) => ledsApi.delete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries(['leds']);
+      queryClient.invalidateQueries(['crosswalks']);
+    },
+  });
 
-  useEffect(() => {
-    fetchLEDs();
+  // Create a new LED device record in the database.
+  const createLED = async (data) => {
+    return createMutation.mutateAsync(data);
+  };
 
-    if (autoRefresh) {
-      const interval = setInterval(fetchLEDs, refreshInterval);
-      return () => clearInterval(interval);
-    }
-  }, [fetchLEDs, autoRefresh, refreshInterval]);
+  // Permanently delete an LED device from the database.
+  const deleteLED = async (id) => {
+    return deleteMutation.mutateAsync(id);
+  };
 
   return {
     leds,
     loading,
-    error,
-    refetch: fetchLEDs,
+    error: error?.message || null,
+    refetch,
     createLED,
     deleteLED
   };

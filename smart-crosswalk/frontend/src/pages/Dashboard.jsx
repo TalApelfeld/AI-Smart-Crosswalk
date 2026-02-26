@@ -1,72 +1,47 @@
 import { useState } from 'react';
-import { PageHeader } from '../components/layout';
-import { Card, LoadingScreen, Button } from '../components/ui';
-import { StatsCard } from '../components/alerts';
-import { CameraDialog, LEDDialog, DeviceList } from '../components/devices';
+import {
+  PageHeader,
+  Card, CardHeader, CardTitle, CardContent,
+  LoadingScreen, Button, StatusIndicator,
+} from '../components/ui';
+import { ItemDialog, StatsGrid, GenericCRUDLayout, GenericDetailCard, useCRUDPage } from '../components';
 import { useAlerts, useCrosswalks, useCameras, useLEDs } from '../hooks';
 
+/**
+ * Dashboard — top-level overview page.
+ *
+ * Displays aggregate stats (alerts + crosswalks), a system-status card, quick
+ * action buttons to add a Camera or LED, and an optional toggleable device
+ * management grid (Cameras + LEDs).
+ *
+ * Data is fetched via the four entity hooks; each device type uses its own
+ * `useCRUDPage` instance to keep create/edit/delete dialog state isolated.
+ *
+ * Route: `/`
+ */
 export function Dashboard() {
-  const { stats: alertStats, loading: alertsLoading } = useAlerts();
+  const { stats: alertStats,     loading: alertsLoading     } = useAlerts();
   const { stats: crosswalkStats, loading: crosswalksLoading } = useCrosswalks();
   const { cameras, createCamera, updateCameraStatus, deleteCamera, loading: camerasLoading } = useCameras();
-  const { leds, createLED, deleteLED, loading: ledsLoading } = useLEDs();
+  const { leds,   createLED,    deleteLED,           loading: ledsLoading   } = useLEDs();
 
-  const [cameraDialogOpen, setCameraDialogOpen] = useState(false);
-  const [ledDialogOpen, setLEDDialogOpen] = useState(false);
   const [showDevices, setShowDevices] = useState(false);
-  const [editingCamera, setEditingCamera] = useState(null);
 
-  const handleCreateCamera = async (data) => {
-    try {
-      if (editingCamera) {
-        // Update existing camera status
-        await updateCameraStatus(editingCamera._id, data.status);
-      } else {
-        // Create new camera
-        await createCamera(data);
-      }
-      setCameraDialogOpen(false);
-      setEditingCamera(null);
-    } catch (err) {
-      console.error('Failed to save camera:', err);
-    }
-  };
+  // Each device type gets its own CRUD hook — handles open/close, submit, delete confirm
+  const cameraPage = useCRUDPage({
+    createFn:   createCamera,
+    updateFn:   (id, data) => updateCameraStatus(id, data.status),
+    deleteFn:   deleteCamera,
+    entityName: 'Camera',
+  });
 
-  const handleEditCamera = (camera) => {
-    setEditingCamera(camera);
-    setCameraDialogOpen(true);
-  };
+  const ledPage = useCRUDPage({
+    createFn:   createLED,
+    deleteFn:   deleteLED,
+    entityName: 'LED',
+  });
 
-  const handleCreateLED = async (data) => {
-    try {
-      await createLED(data);
-      setLEDDialogOpen(false);
-    } catch (err) {
-      console.error('Failed to create LED:', err);
-    }
-  };
-
-  const handleDeleteCamera = async (id) => {
-    if (window.confirm('Are you sure you want to delete this camera?')) {
-      try {
-        await deleteCamera(id);
-      } catch (err) {
-        console.error('Failed to delete camera:', err);
-      }
-    }
-  };
-
-  const handleDeleteLED = async (id) => {
-    if (window.confirm('Are you sure you want to delete this LED?')) {
-      try {
-        await deleteLED(id);
-      } catch (err) {
-        console.error('Failed to delete LED:', err);
-      }
-    }
-  };
-
-  if (alertsLoading || crosswalksLoading) {
+  if (alertsLoading || crosswalksLoading || camerasLoading || ledsLoading) {
     return <LoadingScreen message="Loading dashboard..." />;
   }
 
@@ -77,137 +52,77 @@ export function Dashboard() {
         description="Real-time overview of the Smart Crosswalk System"
       />
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-        <StatsCard
-          title="Total Alerts"
-          value={alertStats.total}
-          icon="📋"
-          color="primary"
-        />
-        <StatsCard
-          title="Total Crosswalks"
-          value={crosswalkStats.total}
-          icon="🚦"
-          color="success"
-        />
-      </div>
+      <StatsGrid stats={[
+        { title: 'Total Alerts',     value: alertStats.total,     icon: '📋', color: 'primary' },
+        { title: 'Total Crosswalks', value: crosswalkStats.total, icon: '🚦', color: 'success' },
+      ]} />
 
-      {/* System Status */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card>
-          <h3 className="text-lg font-semibold text-surface-900 mb-4">
-            System Status
-          </h3>
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <span className="text-surface-600">API Server</span>
-              <span className="flex items-center gap-2 text-success-600">
-                <span className="h-2 w-2 bg-success-500 rounded-full animate-pulse"></span>
-                Online
-              </span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-surface-600">Database</span>
-              <span className="flex items-center gap-2 text-success-600">
-                <span className="h-2 w-2 bg-success-500 rounded-full animate-pulse"></span>
-                Connected
-              </span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-surface-600">YOLO Detection</span>
-              <span className="flex items-center gap-2  text-success-600">
-              <span className="h-2 w-2 bg-success-500 rounded-full animate-pulse"></span>
-              Connected
-              </span>
-            </div>
-          </div>
-        </Card>
+        <GenericDetailCard
+          header={{ icon: '🖥', title: 'System Status' }}
+          fields={[
+            { label: 'API Server',     component: <StatusIndicator status="online"    label="Online"    /> },
+            { label: 'Database',       component: <StatusIndicator status="connected" label="Connected" /> },
+            { label: 'YOLO Detection', component: <StatusIndicator status="connected" label="Connected" /> },
+          ]}
+        />
 
         <Card>
-          <h3 className="text-lg font-semibold text-surface-900 mb-4">
-            Quick Actions
-          </h3>
-          <div className="grid grid-cols-2 gap-3">
-            <button
-              onClick={() => setCameraDialogOpen(true)}
-              className="p-4 bg-primary-50 rounded-lg hover:bg-primary-100 transition-colors text-center border-2 border-primary-200"
-            >
-              <span className="text-2xl block mb-1">📷</span>
-              <span className="text-sm font-medium text-primary-700">Add Camera</span>
-            </button>
-            <button
-              onClick={() => setLEDDialogOpen(true)}
-              className="p-4 bg-success-50 rounded-lg hover:bg-success-100 transition-colors text-center border-2 border-success-200"
-            >
-              <span className="text-2xl block mb-1">💡</span>
-              <span className="text-sm font-medium text-success-700">Add LED</span>
-            </button>
-            <button
-              onClick={() => setShowDevices(!showDevices)}
-              className="p-4 bg-surface-50 rounded-lg hover:bg-surface-100 transition-colors text-center col-span-2"
-            >
-              <span className="text-2xl block mb-1">📋</span>
-              <span className="text-sm text-surface-600">
-                {showDevices ? 'Hide Devices' : 'Manage Devices'}
-              </span>
-            </button>
-          </div>
+          <CardHeader><CardTitle>⚡ Quick Actions</CardTitle></CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 gap-3">
+              <Button variant="secondary" onClick={cameraPage.handleCreate}
+                className="flex flex-col items-center gap-1 p-4 h-auto border-2 border-primary-200 bg-primary-50 hover:bg-primary-100 text-primary-700">
+                <span className="text-2xl">📷</span>
+                <span className="text-sm font-medium">Add Camera</span>
+              </Button>
+              <Button variant="secondary" onClick={ledPage.handleCreate}
+                className="flex flex-col items-center gap-1 p-4 h-auto border-2 border-success-200 bg-success-50 hover:bg-success-100 text-success-700">
+                <span className="text-2xl">💡</span>
+                <span className="text-sm font-medium">Add LED</span>
+              </Button>
+              <Button variant="ghost" onClick={() => setShowDevices(!showDevices)}
+                className="flex flex-col items-center gap-1 p-4 h-auto col-span-2">
+                <span className="text-2xl">📋</span>
+                <span className="text-sm text-surface-600">{showDevices ? 'Hide Devices' : 'Manage Devices'}</span>
+              </Button>
+            </div>
+          </CardContent>
         </Card>
       </div>
 
-      {/* Device Management */}
       {showDevices && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div>
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-surface-900">Cameras</h3>
-              <Button onClick={() => setCameraDialogOpen(true)} size="sm">
-                + Add Camera
-              </Button>
-            </div>
-            <DeviceList
-              devices={cameras}
-              type="Camera"
-              onDelete={handleDeleteCamera}
-              onEdit={handleEditCamera}
-              loading={camerasLoading}
-            />
-          </div>
-
-          <div>
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-surface-900">LED Systems</h3>
-              <Button onClick={() => setLEDDialogOpen(true)} size="sm">
-                + Add LED
-              </Button>
-            </div>
-            <DeviceList
-              devices={leds}
-              type="LED"
-              onDelete={handleDeleteLED}
-              loading={ledsLoading}
-            />
-          </div>
+          <GenericCRUDLayout
+            title="📷 Cameras" items={cameras} allItems={cameras} loading={false} type="camera"
+            keyExtractor={(item) => item._id}
+            createButton={{ text: 'Add Camera', onClick: cameraPage.handleCreate }}
+            itemProps={{ onEdit: cameraPage.handleEdit, onDelete: cameraPage.handleDelete }}
+            emptyIcon="📷" emptyTitle="No Cameras" emptyMessage="No cameras registered yet."
+          />
+          <GenericCRUDLayout
+            title="💡 LED Systems" items={leds} allItems={leds} loading={false} type="led"
+            keyExtractor={(item) => item._id}
+            createButton={{ text: 'Add LED', onClick: ledPage.handleCreate }}
+            itemProps={{ onDelete: ledPage.handleDelete }}
+            emptyIcon="💡" emptyTitle="No LEDs" emptyMessage="No LED systems registered yet."
+          />
         </div>
       )}
 
       {/* Dialogs */}
-      <CameraDialog
-        isOpen={cameraDialogOpen}
-        onClose={() => {
-          setCameraDialogOpen(false);
-          setEditingCamera(null);
-        }}
-        onSubmit={handleCreateCamera}
-        mode={editingCamera ? 'edit' : 'create'}
-        camera={editingCamera}
+      <ItemDialog type="camera"
+        open={cameraPage.formDialog.open} item={cameraPage.formDialog.item}
+        onClose={cameraPage.closeFormDialog} onSubmit={cameraPage.handleFormSubmit} loading={cameraPage.submitting}
       />
-      <LEDDialog
-        isOpen={ledDialogOpen}
-        onClose={() => setLEDDialogOpen(false)}
-        onSubmit={handleCreateLED}
+      <cameraPage.DeleteDialog />
+
+      <ItemDialog type="led"
+        open={ledPage.formDialog.open} item={ledPage.formDialog.item}
+        onClose={ledPage.closeFormDialog} onSubmit={ledPage.handleFormSubmit} loading={ledPage.submitting}
       />
+      <ledPage.DeleteDialog />
     </div>
   );
 }
+

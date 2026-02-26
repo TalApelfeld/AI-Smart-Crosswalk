@@ -1,10 +1,23 @@
+import PropTypes from 'prop-types';
 import { useEffect } from 'react';
 import { cn } from '../../utils';
 
-export function Dialog({ 
-  open, 
-  onClose, 
-  children, 
+/**
+ * Dialog — accessible modal container.
+ * Closes on Escape key press and backdrop click.
+ * Locks body scroll while open.
+ * Compose with DialogHeader / DialogTitle / DialogContent / DialogFooter.
+ *
+ * @example
+ * <Dialog open={open} onClose={close} maxWidth="max-w-lg">
+ *   <DialogHeader><DialogTitle>Hello</DialogTitle></DialogHeader>
+ *   <DialogContent>Content here</DialogContent>
+ * </Dialog>
+ */
+export function Dialog({
+  open,
+  onClose,
+  children,
   className,
   maxWidth = 'max-w-lg'
 }) {
@@ -98,3 +111,22 @@ export function DialogFooter({ children, className }) {
     </div>
   );
 }
+
+const childrenShape = { children: PropTypes.node, className: PropTypes.string };
+
+Dialog.propTypes = {
+  /** Controls visibility */
+  open: PropTypes.bool.isRequired,
+  /** Called when the user dismisses the dialog (Escape or backdrop click) */
+  onClose: PropTypes.func.isRequired,
+  children: PropTypes.node,
+  className: PropTypes.string,
+  /** Max-width Tailwind class e.g. "max-w-md" */
+  maxWidth: PropTypes.string,
+};
+
+DialogHeader.propTypes      = childrenShape;
+DialogTitle.propTypes       = childrenShape;
+DialogDescription.propTypes = childrenShape;
+DialogContent.propTypes     = childrenShape;
+DialogFooter.propTypes      = childrenShape;

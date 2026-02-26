@@ -1,6 +1,19 @@
+import PropTypes from 'prop-types';
 import { Button } from './Button';
 import { Dialog, DialogHeader, DialogTitle, DialogContent, DialogFooter } from './Dialog';
 
+/**
+ * ConfirmDialog — pre-wired destructive-action confirmation modal.
+ * Wraps Dialog with standard Cancel / Confirm buttons and optional
+ * loading state while the async action completes.
+ *
+ * @example
+ * <ConfirmDialog
+ *   open={open} onClose={close} onConfirm={handleDelete}
+ *   title="Delete Crosswalk" message="This cannot be undone."
+ *   confirmText="Delete" variant="danger"
+ * />
+ */
 export function ConfirmDialog({
   open,
   onClose,
@@ -48,3 +61,20 @@ export function ConfirmDialog({
     </Dialog>
   );
 }
+
+ConfirmDialog.propTypes = {
+  /** Controls visibility */
+  open: PropTypes.bool.isRequired,
+  /** Called when the dialog is dismissed without confirming */
+  onClose: PropTypes.func.isRequired,
+  /** Async action to run on confirmation */
+  onConfirm: PropTypes.func.isRequired,
+  title: PropTypes.string,
+  message: PropTypes.string,
+  confirmText: PropTypes.string,
+  cancelText: PropTypes.string,
+  /** Button variant for the confirm button */
+  variant: PropTypes.oneOf(['primary', 'secondary', 'danger', 'success', 'ghost']),
+  /** Shows spinner on the confirm button while the action runs */
+  loading: PropTypes.bool,
+};

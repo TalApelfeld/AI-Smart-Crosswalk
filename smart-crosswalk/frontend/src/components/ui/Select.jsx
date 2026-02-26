@@ -1,5 +1,16 @@
+import PropTypes from 'prop-types';
 import { cn } from '../../utils';
 
+/**
+ * Select — controlled dropdown with optional label and validation error.
+ * Accepts either an `options` array `[{ value, label }]` or `children`
+ * (raw `<option>` elements) for more complex option lists.
+ * Calls `onChange(value: string)` — not a native event.
+ *
+ * @example
+ * <Select label="Status" value={status} onChange={setStatus}
+ *   options={[{ value: 'active', label: 'Active' }]} />
+ */
 export function Select({
   label,
   value,
@@ -59,3 +70,25 @@ export function Select({
     </div>
   );
 }
+
+Select.propTypes = {
+  /** Field label rendered above the select */
+  label: PropTypes.string,
+  /** Controlled value */
+  value: PropTypes.string,
+  /** Called with the selected string value */
+  onChange: PropTypes.func.isRequired,
+  /** Options array rendered as `<option>` elements */
+  options: PropTypes.arrayOf(
+    PropTypes.shape({ value: PropTypes.string.isRequired, label: PropTypes.string.isRequired })
+  ),
+  /** Disabled placeholder shown when no value is selected */
+  placeholder: PropTypes.string,
+  /** Validation error message */
+  error: PropTypes.string,
+  required: PropTypes.bool,
+  disabled: PropTypes.bool,
+  className: PropTypes.string,
+  /** Raw `<option>` elements — overrides the `options` array */
+  children: PropTypes.node,
+};

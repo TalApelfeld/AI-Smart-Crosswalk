@@ -1,103 +1,90 @@
-import { useState, useEffect, useCallback } from 'react';
-import { crosswalksApi, alertsApi } from '../api';
+import { useState } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { crosswalksApi } from '../api';
 
+// Hook for the crosswalk detail page. Loads a single crosswalk, its alerts and its statistics.
 export function useCrosswalkDetails(crosswalkId) {
-  const [crosswalk, setCrosswalk] = useState(null);
-  const [alerts, setAlerts] = useState([]);
-  const [stats, setStats] = useState(null);
+  const queryClient = useQueryClient();
+  
+  // Local state for the alert filters (date range, danger level, sort order) and current page.
   const [filters, setFilters] = useState({
     dateRange: { startDate: null, endDate: null },
     dangerLevel: 'all',
     sortBy: 'newest'
   });
   const [currentPage, setCurrentPage] = useState(1);
-  const [pagination, setPagination] = useState({
-    totalPages: 1,
-    totalAlerts: 0,
-    hasMore: false
+
+  // Fetch a single crosswalk by its ID.
+  // If the crosswalks list was already loaded, the data is taken from cache instantly
+  // without making a new server request.
+  const {
+    data: crosswalk = null,
+    isLoading: crosswalkLoading,
+    error: crosswalkError
+  } = useQuery({
+    queryKey: ['crosswalk', crosswalkId],
+    queryFn: async () => {
+      const response = await crosswalksApi.getById(crosswalkId);
+      return response.data;
+    },
+    enabled: !!crosswalkId,
+    // Use data from crosswalks cache if available (instant display)
+    initialData: () => {
+      const crosswalks = queryClient.getQueryData(['crosswalks']);
+      return crosswalks?.find(c => c._id === crosswalkId);
+    },
+    // Keep the cached data for 1 minute before refetching
+    initialDataUpdatedAt: () => {
+      return queryClient.getQueryState(['crosswalks'])?.dataUpdatedAt;
+    },
   });
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  
-  const fetchData = useCallback(async () => {
-    if (!crosswalkId) return;
-    
-    console.log('fetchData called with crosswalkId:', crosswalkId);
-    
-    setLoading(true);
-    setError(null);
-    
-    try {
-      // First, try to get the crosswalk
-      console.log('Fetching crosswalk...');
-      const crosswalkRes = await crosswalksApi.getById(crosswalkId);
-      console.log('Crosswalk response:', crosswalkRes);
-      
-      if (!crosswalkRes.data) {
-        console.log('Crosswalk data is missing!');
-        setError('Crosswalk not found');
-        setCrosswalk(null);
-        setLoading(false);
-        return;
-      }
-      
-      setCrosswalk(crosswalkRes.data);
-      console.log('Crosswalk set successfully');
-      
-      // Then fetch alerts and stats in parallel
-      console.log('Fetching alerts and stats...');
-      const [alertsRes, statsRes] = await Promise.all([
-        crosswalksApi.getAlerts(crosswalkId, {
-          startDate: filters.dateRange.startDate,
-          endDate: filters.dateRange.endDate,
-          dangerLevel: filters.dangerLevel,
-          sortBy: filters.sortBy,
-          page: currentPage
-        }),
-        crosswalksApi.getCrosswalkStats(crosswalkId)
-      ]);
-      
-      console.log('Alerts response:', alertsRes);
-      console.log('alertsRes.data:', alertsRes.data);
-      console.log('alertsRes.alerts:', alertsRes.alerts);
-      console.log('Stats response:', statsRes);
-      console.log('statsRes.data:', statsRes.data);
-      
-      const alertsData = alertsRes.alerts || [];
-      const statsData = statsRes.data || {};
-      const paginationData = alertsRes.pagination || {};
-      
-      console.log('Setting alerts:', alertsData);
-      console.log('Setting stats:', statsData);
-      
-      setAlerts(alertsData);
-      setStats(statsData);
-      setPagination({
-        totalPages: paginationData.totalPages || 1,
-        totalAlerts: paginationData.totalAlerts || 0,
-        hasMore: paginationData.hasMore || false
+
+  // Fetch the alerts that belong to this crosswalk.
+  // Re-fetches whenever the filters (date, danger level, sort) or page number change.
+  const {
+    data: alertsData = { alerts: [], pagination: { totalPages: 1, totalAlerts: 0, hasMore: false } },
+    isLoading: alertsLoading,
+    error: alertsError,
+    refetch: refetchAlerts
+  } = useQuery({
+    queryKey: ['crosswalk-alerts', crosswalkId, filters, currentPage],
+    queryFn: async () => {
+      const response = await crosswalksApi.getAlerts(crosswalkId, {
+        startDate: filters.dateRange.startDate,
+        endDate: filters.dateRange.endDate,
+        dangerLevel: filters.dangerLevel,
+        sortBy: filters.sortBy,
+        page: currentPage
       });
-      console.log('All data set successfully');
-    } catch (err) {
-      console.error('Error fetching crosswalk details:', err);
-      console.error('Error details:', err.response);
-      setError(err.response?.data?.message || err.message || 'Failed to load crosswalk details');
-      setCrosswalk(null);
-    } finally {
-      setLoading(false);
-    }
-  }, [crosswalkId, filters, currentPage]);
-  
-  useEffect(() => {
-    console.log('useEffect triggered, calling fetchData');
-    fetchData();
-  }, [fetchData]);
-  
+      return {
+        alerts: response.alerts || [],
+        pagination: response.pagination || { totalPages: 1, totalAlerts: 0, hasMore: false }
+      };
+    },
+    enabled: !!crosswalkId,
+  });
+
+  // Fetch statistics for this specific crosswalk (e.g. total alerts, danger breakdown).
+  const {
+    data: stats = null,
+    isLoading: statsLoading,
+    error: statsError
+  } = useQuery({
+    queryKey: ['crosswalk-stats', crosswalkId],
+    queryFn: async () => {
+      const response = await crosswalksApi.getCrosswalkStats(crosswalkId);
+      return response.data;
+    },
+    enabled: !!crosswalkId,
+  });
+
+  // Apply new filter values and reset to the first page.
   const updateFilters = (newFilters) => {
     setFilters({ ...filters, ...newFilters });
     setCurrentPage(1); // Reset to page 1
   };
-  
+
+  // Reset all filters to their default values and go back to page 1.
   const clearFilters = () => {
     setFilters({
       dateRange: { startDate: null, endDate: null },
@@ -106,27 +93,37 @@ export function useCrosswalkDetails(crosswalkId) {
     });
     setCurrentPage(1);
   };
-  
+
+  // Navigate to a specific page of the alerts list.
   const goToPage = (page) => {
     setCurrentPage(page);
   };
+
+  const loading = crosswalkLoading || alertsLoading || statsLoading;
   
+  // Show loading screen only if we don't have crosswalk data at all.
+  // Once we have crosswalk (from cache or server), show content even if alerts/stats are loading.
+  const isInitialLoading = !crosswalk && (crosswalkLoading || alertsLoading);
+  
+  const error = crosswalkError?.message || alertsError?.message || statsError?.message || null;
+
   return {
     crosswalk,
-    alerts,
+    alerts: alertsData.alerts,
     stats,
     filters,
     updateFilters,
     clearFilters,
     pagination: {
       currentPage,
-      totalPages: pagination.totalPages,
-      totalAlerts: pagination.totalAlerts,
-      hasMore: pagination.hasMore
+      totalPages: alertsData.pagination.totalPages,
+      totalAlerts: alertsData.pagination.totalAlerts,
+      hasMore: alertsData.pagination.hasMore
     },
     goToPage,
-    loading,
+    loading, // Full loading state (includes refetches)
+    isInitialLoading, // Only true when loading for the first time
     error,
-    refetch: fetchData
+    refetch: refetchAlerts
   };
 }
