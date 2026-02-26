@@ -12,4 +12,4 @@ export { DateRangePicker } from './DateRangePicker';
 export { Navbar } from './Navbar';
 export { PageHeader } from './PageHeader';
 export { StatusIndicator } from './StatusIndicator';
-
+export { Pagination }      from './Pagination';

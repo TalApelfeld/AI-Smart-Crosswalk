@@ -1,8 +1,12 @@
 import { useState } from 'react';
-import { PageHeader, LoadingScreen, Card, CardTitle, CardDescription, Button, Input, Badge, ConfirmDialog, useToast } from './ui';
+import { PageHeader, LoadingScreen, Card, CardTitle, CardDescription, Button, Input, Badge } from './ui';
 import { GenericDetailCard, CrosswalkItem, AlertItem } from './ItemCard';
 import { DeviceRowItem } from './DeviceRowItem';
 import { cn } from '../utils';
+
+// Re-exported from their own files — imported here so PageLayout stays the single bundle entry point.
+export { useCRUDPage } from './useCRUDPage';
+export { pageConfigs } from './pageConfigs';
 
 // ─── StatsCard ────────────────────────────────────────────────────────────────
 
@@ -54,18 +58,17 @@ export function StatsGrid({ stats = [], cols }) {
 // ─── Component Registry ───────────────────────────────────────────────────────
 // Central type → component mapping.
 
-export const componentRegistry = {
+const componentRegistry = {
   crosswalk: { component: CrosswalkItem,  layout: 'card' },
   alert:     { component: AlertItem,      layout: 'card' },
   camera:    { component: DeviceRowItem,  layout: 'row', columns: ['ID', 'Status', 'Created', 'Actions'], config: { showStatus: true,  showEdit: true  } },
   led:       { component: DeviceRowItem,  layout: 'row', columns: ['ID', 'Created', 'Actions'],           config: { showStatus: false, showEdit: false } },
 };
 
-export const getComponentForType  = (type)        => { if (!(type in componentRegistry)) throw new Error(`Unknown component type: ${type}`); return componentRegistry[type]; };
-export const isTypeRegistered     = (type)        => type in componentRegistry;
-export const getRegisteredTypes   = ()            => Object.keys(componentRegistry);
-export const registerComponent    = (type, entry) => { componentRegistry[type] = { layout: 'card', ...entry }; };
-export const unregisterComponent  = (type)        => { if (type in componentRegistry) { delete componentRegistry[type]; return true; } return false; };
+const getComponentForType = (type) => {
+  if (!(type in componentRegistry)) throw new Error(`Unknown component type: ${type}`);
+  return componentRegistry[type];
+};
 
 // ─── GenericList ──────────────────────────────────────────────────────────────
 
@@ -142,110 +145,6 @@ export function GenericList({
     </div>
   );
 }
-
-// ─── useCRUDPage ──────────────────────────────────────────────────────────────
-
-export function useCRUDPage({ createFn, updateFn, deleteFn, entityName = 'Item', deleteMessage, onSuccess }) {
-  const { addToast } = useToast();
-  const [formDialog,   setFormDialog]   = useState({ open: false, item: null });
-  const [deleteDialog, setDeleteDialog] = useState({ open: false, item: null });
-  const [submitting,   setSubmitting]   = useState(false);
-
-  const handleCreate = () => setFormDialog({ open: true, item: null });
-  const handleEdit   = (item) => setFormDialog({ open: true, item });
-  const handleDelete = (item) => setDeleteDialog({ open: true, item });
-  const closeFormDialog   = () => setFormDialog({ open: false, item: null });
-  const closeDeleteDialog = () => setDeleteDialog({ open: false, item: null });
-
-  const handleFormSubmit = async (formData) => {
-    setSubmitting(true);
-    try {
-      if (formDialog.item) { await updateFn(formDialog.item._id, formData); addToast(`${entityName} updated successfully`, 'success'); }
-      else                 { await createFn(formData);                      addToast(`${entityName} created successfully`, 'success'); }
-      closeFormDialog();
-      onSuccess?.();
-    } catch (err) {
-      addToast(err.message || `Error saving ${entityName}`, 'error');
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
-  const handleConfirmDelete = async () => {
-    setSubmitting(true);
-    try {
-      await deleteFn(deleteDialog.item._id);
-      addToast(`${entityName} deleted successfully`, 'success');
-      closeDeleteDialog();
-      onSuccess?.();
-    } catch (err) {
-      addToast(err.message || `Error deleting ${entityName}`, 'error');
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
-  const DeleteDialog = () => (
-    <ConfirmDialog
-      open={deleteDialog.open}
-      onClose={closeDeleteDialog}
-      onConfirm={handleConfirmDelete}
-      title={`Delete ${entityName}`}
-      message={deleteMessage ? deleteMessage(deleteDialog.item) : `Are you sure you want to delete this ${entityName.toLowerCase()}?`}
-      confirmText="Delete"
-      cancelText="Cancel"
-      variant="danger"
-      loading={submitting}
-    />
-  );
-
-  return { formDialog, deleteDialog, submitting, handleCreate, handleEdit, handleDelete, handleFormSubmit, handleConfirmDelete, closeFormDialog, closeDeleteDialog, DeleteDialog };
-}
-
-// ─── pageConfigs ──────────────────────────────────────────────────────────────
-// Per-page static config: title, description, type, search, stats, empty state.
-const stat = (title, value, icon, color) => ({ title, value, icon, color });
-export const pageConfigs = {
-  crosswalk: {
-    title:             'Crosswalks',
-    description:       'Manage all smart crosswalk locations and their connected devices.',
-    type:              'crosswalk',
-    searchEnabled:     true,
-    searchPlaceholder: 'Search by city, street, or number...',
-    onSearch:          (item, q) => {
-      const s = q.toLowerCase();
-      return (
-        item.location?.city?.toLowerCase().includes(s) ||
-        item.location?.street?.toLowerCase().includes(s) ||
-        String(item.location?.number).includes(s)
-      );
-    },
-    stats: (data) => [
-      stat('Total Crosswalks', data.length,                                              '🚦', 'primary'),
-      stat('Active',           data.filter(c => c.cameraId?.status === 'active').length, '✅', 'success'),
-      stat('With Camera',      data.filter(c => c.cameraId).length,                      '📷', 'warning'),
-      stat('With LED',         data.filter(c => c.ledId).length,                         '💡', 'orange' ),
-    ],
-    emptyIcon:    '🚦',
-    emptyTitle:   'No Crosswalks',
-    emptyMessage: 'Get started by adding your first crosswalk location.',
-  },
-
-  alert: {
-    title:       'Alerts',
-    description: 'Monitor and manage all detection alerts from crosswalk cameras.',
-    type:        'alert',
-    stats: (s) => [
-      stat('Total Alerts',  s.total  ?? 0, '📋', 'primary'),
-      stat('High Danger',   s.high   ?? 0, '🚨', 'danger' ),
-      stat('Medium Danger', s.medium ?? 0, '🚨', 'orange' ),
-      stat('Low Danger',    s.low    ?? 0, '🚨', 'warning'),
-    ],
-    emptyIcon:    '🚨',
-    emptyTitle:   'No Alerts',
-    emptyMessage: 'No detection alerts have been recorded yet.',
-  },
-};
 
 // ─── GenericCRUDLayout ────────────────────────────────────────────────────────
 

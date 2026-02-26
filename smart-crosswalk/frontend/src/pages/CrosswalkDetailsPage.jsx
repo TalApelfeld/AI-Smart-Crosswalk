@@ -1,6 +1,6 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { useCrosswalkDetails } from '../hooks';
-import { Card, CardHeader, CardTitle, CardContent, Button, LoadingScreen, DateRangePicker, Select } from '../components/ui';
+import { Card, CardHeader, CardTitle, CardContent, Button, LoadingScreen, DateRangePicker, Select, Pagination } from '../components/ui';
 import { GenericCRUDLayout, GenericDetailCard, ItemCard } from '../components';
 
 export function CrosswalkDetailsPage() {
@@ -122,54 +122,12 @@ export function CrosswalkDetailsPage() {
         }
       />
 
-      {/* Pagination */}
-      {pagination.totalPages > 1 && (
-        <div className="flex items-center justify-center gap-2">
-          <Button
-            variant="secondary"
-            onClick={() => goToPage(pagination.currentPage - 1)}
-            disabled={pagination.currentPage === 1}
-          >
-            Previous
-          </Button>
-
-          <div className="flex items-center gap-1">
-            {[...Array(pagination.totalPages)].map((_, i) => {
-              const page = i + 1;
-              if (
-                page === 1 ||
-                page === pagination.totalPages ||
-                (page >= pagination.currentPage - 1 && page <= pagination.currentPage + 1)
-              ) {
-                return (
-                  <Button
-                    key={page}
-                    variant={page === pagination.currentPage ? 'primary' : 'secondary'}
-                    size="sm"
-                    onClick={() => goToPage(page)}
-                  >
-                    {page}
-                  </Button>
-                );
-              } else if (
-                page === pagination.currentPage - 2 ||
-                page === pagination.currentPage + 2
-              ) {
-                return <span key={page} className="text-gray-400">...</span>;
-              }
-              return null;
-            })}
-          </div>
-
-          <Button
-            variant="secondary"
-            onClick={() => goToPage(pagination.currentPage + 1)}
-            disabled={!pagination.hasMore}
-          >
-            Next
-          </Button>
-        </div>
-      )}
+      <Pagination
+        currentPage={pagination.currentPage}
+        totalPages={pagination.totalPages}
+        hasMore={pagination.hasMore}
+        onPageChange={goToPage}
+      />
     </div>
   );
 }

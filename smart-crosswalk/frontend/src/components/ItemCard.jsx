@@ -84,80 +84,83 @@ export function GenericDetailCard({ header, image, fields = [], actions = [], on
   );
 }
 
-// ─── Field descriptor helpers ─────────────────────────────────────────────────
-// f(label, getter, opts?)  → plain text field
-// badge(label, getter)     → Badge component field  (getter returns { variant, text })
-// Descriptors are static objects — resolved against an item at render time.
+// ─── Shared helpers ───────────────────────────────────────────────────────────
 
-const f     = (label, get, opts = {}) => ({ label, get, ...opts });
-const badge = (label, getBadge)       => ({ label, getBadge });
+const none        = (text) => <span className="text-sm text-surface-500">{text}</span>;
+const alertImg    = (item) => ({ url: getImageUrl(item.detectionPhoto?.url), alt: 'Detection', fallbackIcon: '📷' });
+const borderClass = (item) => `border-l-4 ${formatDangerLevel(item.dangerLevel).border}`;
 
-function resolveField(fd, item) {
-  if (typeof fd === 'function') return fd(item);                      // raw function fallback
-  if (fd.getBadge) {
-    const b = fd.getBadge(item);
-    return b ? { label: fd.label, component: <Badge variant={b.variant}>{b.text ?? b.label}</Badge> } : null;
-  }
-  const { label, get, ...opts } = fd;
-  return { label, value: get(item), ...opts };
-}
+const dangerHeader = (getSub) => (item) => {
+  const dl = formatDangerLevel(item.dangerLevel);
+  return { icon: dl.icon, title: `${dl.label} Danger Alert`, subtitle: getSub(item) };
+};
 
-// ─── Shared fragments ─────────────────────────────────────────────────────────
+const alertBaseFields = (item) => {
+  const dl = formatDangerLevel(item.dangerLevel);
+  return [
+    { label: 'Danger Level', component: <Badge variant={dl.variant}>{dl.label} Danger</Badge> },
+    { label: 'Detected',     value: formatDate(item.timestamp || item.createdAt) },
+  ];
+};
 
-const dangerBadge   = badge('Danger Level',  item => { const d = formatDangerLevel(item.dangerLevel); return { variant: d.variant, text: `${d.label} Danger` }; });
-const cameraBadge   = badge('Camera Status', item => formatStatus(item.cameraId?.status));
-const detectedField = f('Detected',          item => formatDate(item.timestamp || item.createdAt));
-const alertImg      = item => ({ url: getImageUrl(item.detectionPhoto?.url), alt: 'Detection', fallbackIcon: '📷' });
-const borderClass   = item => `border-l-4 ${formatDangerLevel(item.dangerLevel).border}`;
-const editDelete    = (item, { onEdit, onDelete }) => [
+const editDeleteActions = (item, { onEdit, onDelete }) => [
   onEdit   && { label: '✏️ Edit',   variant: 'ghost',  onClick: e => { e.stopPropagation(); onEdit(item);   } },
   onDelete && { label: '🗑️ Delete', variant: 'danger', onClick: e => { e.stopPropagation(); onDelete(item); } },
 ].filter(Boolean);
 
-const none        = (text)   => <span className="text-sm text-surface-500">{text}</span>;
-const alertHeader = (getSub) => item => { const dl = formatDangerLevel(item.dangerLevel); return { icon: dl.icon, title: `${dl.label} Danger Alert`, subtitle: getSub(item) }; };
-
 // ─── Card Config Registry ─────────────────────────────────────────────────────
-// One entry per type+variant.
-// fields: array of descriptors (f / badge / raw function) — resolved via resolveField.
+// Every entry has the same shape:
+//   header(item)         → { icon, title, subtitle }
+//   fields(item)         → [{ label, value } | { label, component }]
+//   actions(item, props) → [{ label, onClick, variant? }]
+//   image?(item)         → { url, alt, fallbackIcon }
+//   className?(item)     → string
 
 const cardConfigs = {
   'crosswalk-list': {
-    header:  item => ({ icon: '🚦', title: item.location?.city || 'Unknown City', subtitle: formatLocation(item.location) }),
-    fields:  [
-      f('Camera ID', item => formatId(item.cameraId?._id)),
-      f('LED ID',    item => formatId(item.ledId?._id)),
-      cameraBadge,
-    ],
-    actions: editDelete,
+    header:  (item) => ({ icon: '🚦', title: item.location?.city || 'Unknown City', subtitle: formatLocation(item.location) }),
+    fields:  (item) => {
+      const s = formatStatus(item.cameraId?.status);
+      return [
+        { label: 'Camera ID',     value: formatId(item.cameraId?._id) },
+        { label: 'LED ID',        value: formatId(item.ledId?._id)    },
+        { label: 'Camera Status', component: <Badge variant={s.variant}>{s.text}</Badge> },
+      ];
+    },
+    actions: editDeleteActions,
   },
 
   'crosswalk-detail': {
-    header:  item => ({ icon: '🚦', title: `${item.location.street} ${item.location.number}`, subtitle: item.location.city }),
-    fields:  [
-      f('Created', item => formatDate(item.createdAt, { year: 'numeric', month: 'short', day: 'numeric' })),
-      item => { const s = formatStatus(item.cameraId?.status); return { label: '📷 Camera', component: item.cameraId ? <Badge variant={s.variant}>{s.text}</Badge> : none('No Camera') }; },
-      item => ({ label: '💡 LED', component: item.ledId ? <span className="text-xs font-mono">{formatId(item.ledId._id)}</span> : none('No LED') }),
-    ],
+    header:  (item) => ({ icon: '🚦', title: `${item.location.street} ${item.location.number}`, subtitle: item.location.city }),
+    fields:  (item) => {
+      const s = formatStatus(item.cameraId?.status);
+      return [
+        { label: 'Created',    value: formatDate(item.createdAt, { year: 'numeric', month: 'short', day: 'numeric' }) },
+        { label: '📷 Camera', component: item.cameraId ? <Badge variant={s.variant}>{s.text}</Badge> : none('No Camera') },
+        { label: '💡 LED',    component: item.ledId    ? <span className="text-xs font-mono">{formatId(item.ledId._id)}</span> : none('No LED') },
+      ];
+    },
     actions: () => [],
   },
 
   'alert-list': {
-    header:    alertHeader(item => item.crosswalkId?.location ? formatLocation(item.crosswalkId.location) : undefined),
-    fields:    [ dangerBadge, detectedField, f('Camera', item => formatId(item.crosswalkId?.cameraId?._id)) ],
-    actions:   editDelete,
+    header:    dangerHeader((item) => item.crosswalkId?.location ? formatLocation(item.crosswalkId.location) : undefined),
+    fields:    (item) => [
+      ...alertBaseFields(item),
+      { label: 'Camera', value: formatId(item.crosswalkId?.cameraId?._id) },
+    ],
+    actions:   editDeleteActions,
     image:     alertImg,
     className: borderClass,
   },
 
   'alert-history': {
-    header:    alertHeader(item => item.crosswalkId?.location ? formatLocation(item.crosswalkId.location) : formatDate(item.timestamp)),
-    fields:    [
-      dangerBadge,
-      detectedField,
-      f('Alert ID', item => formatId(item._id), { valueClassName: 'text-gray-500 font-mono ml-2', break: true }),
+    header:    dangerHeader((item) => item.crosswalkId?.location ? formatLocation(item.crosswalkId.location) : formatDate(item.timestamp)),
+    fields:    (item) => [
+      ...alertBaseFields(item),
+      { label: 'Alert ID', value: formatId(item._id), valueClassName: 'text-gray-500 font-mono ml-2', break: true },
     ],
-    actions: (item, { onViewDetails }) => [
+    actions:   (item, { onViewDetails }) => [
       onViewDetails            && { label: 'View Details',   onClick: () => onViewDetails(item) },
       item.detectionPhoto?.url && { label: 'Download Image', href: getImageUrl(item.detectionPhoto.url), target: '_blank', rel: 'noopener noreferrer', variant: 'secondary' },
     ].filter(Boolean),
@@ -167,41 +170,30 @@ const cardConfigs = {
 };
 
 // ─── ItemCard ─────────────────────────────────────────────────────────────────
-// Config-driven card — looks up type+variant in cardConfigs and renders via GenericDetailCard.
-// Use directly in pages: <ItemCard item={x} type="crosswalk" variant="detail" />
+// Config-driven card. Use: <ItemCard item={x} type="crosswalk" variant="detail" />
 
 export function ItemCard({ item, type, variant, onClick, ...props }) {
   const config = cardConfigs[`${type}-${variant}`];
-  if (!config) {
-    console.error(`ItemCard: no config for type="${type}" variant="${variant}"`);
-    return null;
-  }
-  const fields = (typeof config.fields === 'function'
-    ? config.fields(item)
-    : config.fields.map(fd => resolveField(fd, item))
-  ).filter(Boolean);
-
+  if (!config) { console.error(`ItemCard: unknown "${type}-${variant}"`); return null; }
   return (
     <GenericDetailCard
       className={config.className?.(item)}
       onClick={onClick ? () => onClick(item) : undefined}
       header={config.header(item)}
       image={config.image?.(item)}
-      fields={fields}
+      fields={config.fields(item).filter(Boolean)}
       actions={config.actions(item, props)}
     />
   );
 }
 
 // ─── List adapters ────────────────────────────────────────────────────────────
-// Used internally by PageLayout's componentRegistry — wired to GenericList.
+// Thin wrappers used by PageLayout's componentRegistry → GenericList.
 
-function CrosswalkItemComponent({ item, onEdit, onDelete, onClick }) {
-  return <ItemCard item={item} type="crosswalk" variant="list" onClick={onClick} onEdit={onEdit} onDelete={onDelete} />;
-}
-export const CrosswalkItem = memo(CrosswalkItemComponent);
+export const CrosswalkItem = memo(({ item, onEdit, onDelete, onClick }) =>
+  <ItemCard item={item} type="crosswalk" variant="list" onClick={onClick} onEdit={onEdit} onDelete={onDelete} />
+);
 
-function AlertItemComponent({ item, variant = 'list', onEdit, onDelete, onViewDetails }) {
-  return <ItemCard item={item} type="alert" variant={variant} onEdit={onEdit} onDelete={onDelete} onViewDetails={onViewDetails} />;
-}
-export const AlertItem = memo(AlertItemComponent);
+export const AlertItem = memo(({ item, variant = 'list', onEdit, onDelete, onViewDetails }) =>
+  <ItemCard item={item} type="alert" variant={variant} onEdit={onEdit} onDelete={onDelete} onViewDetails={onViewDetails} />
+);

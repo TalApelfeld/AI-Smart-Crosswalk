@@ -1,6 +1,13 @@
 import { useState } from 'react';
 import { Button, Card, Badge, DateRangePicker, Select, Input } from './ui';
 
+// Static config per filter key — drives labels, types, and select options.
+const FILTER_CONFIG = {
+  dangerLevel:     { label: 'Danger Level',    options: [{ value: 'LOW', label: 'Low' }, { value: 'MEDIUM', label: 'Medium' }, { value: 'HIGH', label: 'High' }] },
+  dateRange:       { label: 'Date Range',      type: 'daterange' },
+  crosswalkSearch: { label: 'Search Crosswalk', type: 'search' },
+};
+
 export function FilterBar({ filters, onFilterChange, onClear, crosswalks = [] }) {
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -35,7 +42,7 @@ export function FilterBar({ filters, onFilterChange, onClear, crosswalks = [] })
         <div className="mt-4 pt-4 border-t border-surface-200">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {Object.entries(filters).map(([key, value]) => {
-              const config = getFilterConfig(key, crosswalks);
+              const config = FILTER_CONFIG[key];
               if (!config) return null;
 
               return (
@@ -110,14 +117,4 @@ export function FilterBar({ filters, onFilterChange, onClear, crosswalks = [] })
   );
 }
 
-function getFilterConfig(key) {
-  const configs = {
-    dangerLevel: {
-      label: 'Danger Level',
-      options: [{ value: 'LOW', label: 'Low' }, { value: 'MEDIUM', label: 'Medium' }, { value: 'HIGH', label: 'High' }],
-    },
-    dateRange:       { label: 'Date Range',       type: 'daterange' },
-    crosswalkSearch: { label: 'Search Crosswalk', type: 'search' },
-  };
-  return configs[key];
-}
+

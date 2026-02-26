@@ -14,7 +14,7 @@ const getNestedValue = (obj, key) =>
 // ─── useFormState ─────────────────────────────────────────────────────────────
 // Shared hook for flat/nested form state.
 
-export function useFormState(initialFn, item, open) {
+function useFormState(initialFn, item, open) {
   const [formData, setFormData] = useState(() => initialFn(item));
   useEffect(() => setFormData(initialFn(item)), [item, open]);
 
@@ -196,54 +196,38 @@ function TabDialog({ tabsConfig, item, open, onClose, loading, context }) {
   );
 }
 
-// ─── Dialog Config Registry ───────────────────────────────────────────────────
-// One entry per type — pages use <ItemDialog type="..." /> without knowing the internals.
-// Add a new dialog type here without touching any other file.
+// ─── Shared option lists ──────────────────────────────────────────────────────
 
-const STATUS_OPTIONS       = [{ value: 'active', label: 'Active' }, { value: 'inactive', label: 'Inactive' }, { value: 'error', label: 'Error' }];
-const DANGER_LEVEL_OPTIONS = [{ value: 'LOW', label: 'Low' }, { value: 'MEDIUM', label: 'Medium' }, { value: 'HIGH', label: 'High' }];
+const STATUS_OPTIONS       = [{ value: 'active', label: 'Active'  }, { value: 'inactive', label: 'Inactive' }, { value: 'error', label: 'Error' }];
+const DANGER_LEVEL_OPTIONS = [{ value: 'LOW',    label: 'Low'     }, { value: 'MEDIUM',   label: 'Medium'   }, { value: 'HIGH',  label: 'High'  }];
 
-const toOptions = {
-  cameras:    (list) => list.map(c  => ({ value: c._id,  label: `Camera ${formatId(c._id)} - ${c.status}` })),
-  leds:       (list) => list.map(l  => ({ value: l._id,  label: `LED ${formatId(l._id)}` })),
-  crosswalks: (list) => list.map(cw => ({ value: cw._id, label: `${cw.location.city}, ${cw.location.street} ${cw.location.number}` })),
-};
-
-const sharedFields = {
-  statusSelect:    { type: 'select', label: 'Status',       key: 'status',             options: STATUS_OPTIONS,       required: true },
-  dangerLevel:     { type: 'select', label: 'Danger Level', key: 'dangerLevel',        options: DANGER_LEVEL_OPTIONS, required: true },
-  photoUrl:        { type: 'input',  label: 'Photo URL',    key: 'detectionPhoto.url', inputType: 'url', placeholder: 'https://example.com/photo.jpg', required: true },
-  locationCity:    { type: 'input',  label: 'City',         key: 'location.city',      placeholder: 'Tel Aviv',  required: true },
-  locationStreet:  { type: 'input',  label: 'Street',       key: 'location.street',    placeholder: 'Dizengoff', required: true },
-  locationNumber:  { type: 'input',  label: 'Number',       key: 'location.number',    placeholder: '50',        required: true },
-  cameraSelect:    (cameras) => ({ type: 'select', label: 'Select Camera', key: 'cameraId', placeholder: 'Select camera...', options: toOptions.cameras(cameras), hint: 'You can assign a camera after creating the crosswalk' }),
-  ledSelect:       (leds)    => ({ type: 'select', label: 'Select LED',    key: 'ledId',    placeholder: 'Select LED...',    options: toOptions.leds(leds),        hint: 'You can assign an LED after creating the crosswalk' }),
-  crosswalkSelect: (crosswalks, isEdit) => ({ type: 'select', label: 'Crosswalk', key: 'crosswalkId', placeholder: 'Select a crosswalk', options: toOptions.crosswalks(crosswalks), required: true, disabled: isEdit }),
-};
-
+// Converts empty-string IDs to null before submitting (MongoDB rejects empty strings as ObjectIds).
 const nullifyFields = (...keys) => (fd) =>
   Object.fromEntries(Object.entries(fd).map(([k, v]) => [k, keys.includes(k) && v === '' ? null : v]));
 
-// deviceTab: factory for camera/LED tabs (structurally identical)
-const deviceTab = ({ id, label, icon, deviceKey, getOptions, selectLabel, selectPlaceholder, onLink, onUnlink, onCreate, linkLabel, createLabel }) => {
-  const name = label.replace(/\S+\s/, '');
-  return {
-    id, label, type: 'device', deviceKey,
-    sectionTitle: `${icon} ${name} Management`,
-    getDeviceCard: device => ({
-      header: { icon, title: `${name} ${formatId(device._id)}`, subtitle: 'Linked' },
-      fields: [device.status && { label: 'Status', component: <Badge variant={formatStatus(device.status).variant}>{formatStatus(device.status).text}</Badge> }].filter(Boolean),
-    }),
-    getOptions, selectLabel, selectPlaceholder, onLink, onUnlink, onCreate, linkLabel, createLabel,
-  };
-};
+// ─── Dialog Config Registry ───────────────────────────────────────────────────
+// Every form-type entry has the same shape:
+//   title(isEdit)           → string
+//   submitText(isEdit)      → string
+//   initialState(item)      → object
+//   sections(item, context) → [{ title?, fields: [{ type, label, key, ... }] }]
+//   description?(isEdit)    → string
+//   maxWidth?               → string
+//   prepareSubmit?          → fn(formData) → formData
+//
+// Tab-type entries add:
+//   dialogType: 'tabs'
+//   getSubtitle(item)       → string
+//   tabs: [{ id, label, type: 'form'|'device', ... }]
 
 const dialogConfigs = {
   camera: {
     title:        (isEdit) => isEdit ? 'Edit Camera'   : 'Add New Camera',
     submitText:   (isEdit) => isEdit ? 'Update Camera' : 'Create Camera',
     initialState: (item)   => ({ status: item?.status || 'active' }),
-    sections:     ()       => [{ fields: [sharedFields.statusSelect] }],
+    sections:     ()       => [{
+      fields: [{ type: 'select', label: 'Status', key: 'status', options: STATUS_OPTIONS, required: true }],
+    }],
   },
 
   led: {
@@ -258,12 +242,16 @@ const dialogConfigs = {
     title:        (isEdit) => isEdit ? 'Edit Alert'   : 'Add New Alert',
     submitText:   (isEdit) => isEdit ? 'Save Changes' : 'Add Alert',
     initialState: (item)   => ({
-      crosswalkId:    item?.crosswalkId?._id      || '',
-      dangerLevel:    item?.dangerLevel           || 'LOW',
+      crosswalkId:    item?.crosswalkId?._id       || '',
+      dangerLevel:    item?.dangerLevel            || 'LOW',
       detectionPhoto: { url: item?.detectionPhoto?.url || '' },
     }),
     sections: (item, { crosswalks = [] }) => [{
-      fields: [ sharedFields.crosswalkSelect(crosswalks, Boolean(item)), sharedFields.dangerLevel, sharedFields.photoUrl ],
+      fields: [
+        { type: 'select', label: 'Crosswalk',    key: 'crosswalkId',        options: crosswalks.map(cw => ({ value: cw._id, label: `${cw.location.city}, ${cw.location.street} ${cw.location.number}` })), required: true, disabled: Boolean(item), placeholder: 'Select a crosswalk' },
+        { type: 'select', label: 'Danger Level', key: 'dangerLevel',        options: DANGER_LEVEL_OPTIONS, required: true },
+        { type: 'input',  label: 'Photo URL',    key: 'detectionPhoto.url', inputType: 'url', placeholder: 'https://example.com/photo.jpg', required: true },
+      ],
     }],
     prepareSubmit: nullifyFields('crosswalkId'),
   },
@@ -277,10 +265,18 @@ const dialogConfigs = {
       cameraId: item?.cameraId?._id || '',
       ledId:    item?.ledId?._id    || '',
     }),
-    sections: (item, { cameras = [], leds = [] }) => [
-      { title: '📍 Location Details', fields: [sharedFields.locationCity, sharedFields.locationStreet, sharedFields.locationNumber] },
-      { title: '📷 Camera',           fields: [sharedFields.cameraSelect(cameras)] },
-      { title: '💡 LED Lighting',     fields: [sharedFields.ledSelect(leds)] },
+    sections: (_, { cameras = [], leds = [] }) => [
+      { title: '📍 Location Details', fields: [
+        { type: 'input', label: 'City',   key: 'location.city',   placeholder: 'Tel Aviv',  required: true },
+        { type: 'input', label: 'Street', key: 'location.street', placeholder: 'Dizengoff', required: true },
+        { type: 'input', label: 'Number', key: 'location.number', placeholder: '50',        required: true },
+      ]},
+      { title: '📷 Camera', fields: [
+        { type: 'select', label: 'Select Camera', key: 'cameraId', options: cameras.map(c => ({ value: c._id, label: `Camera ${formatId(c._id)} - ${c.status}` })), placeholder: 'Select camera...', hint: 'You can assign a camera after creating the crosswalk' },
+      ]},
+      { title: '💡 LED Lighting', fields: [
+        { type: 'select', label: 'Select LED', key: 'ledId', options: leds.map(l => ({ value: l._id, label: `LED ${formatId(l._id)}` })), placeholder: 'Select LED...', hint: 'You can assign an LED after creating the crosswalk' },
+      ]},
     ],
     prepareSubmit: nullifyFields('cameraId', 'ledId'),
   },
@@ -295,27 +291,37 @@ const dialogConfigs = {
         sectionTitle: '📍 Update Location Details',
         formFields:   [{ key: 'city', label: 'City', required: true }, { key: 'street', label: 'Street', required: true }, { key: 'number', label: 'Number', required: true }],
         initState:    (item) => ({ city: item.location?.city || '', street: item.location?.street || '', number: item.location?.number || '' }),
-        onSubmit:     (item, formState, ctx) => ctx.onUpdate(item._id, { location: formState }),
+        onSubmit:     (item, state, ctx) => ctx.onUpdate(item._id, { location: state }),
         submitLabel:  'Save Changes',
       },
-      deviceTab({
-        id: 'camera', label: '📷 Camera', icon: '📷', deviceKey: 'cameraId',
-        getOptions:        (ctx) => toOptions.cameras(ctx.cameras || []),
+      {
+        id: 'camera', label: '📷 Camera', type: 'device', deviceKey: 'cameraId',
+        sectionTitle:      '📷 Camera Management',
+        getDeviceCard:     (device) => ({
+          header: { icon: '📷', title: `Camera ${formatId(device._id)}`, subtitle: 'Linked' },
+          fields: [device.status && { label: 'Status', component: <Badge variant={formatStatus(device.status).variant}>{formatStatus(device.status).text}</Badge> }].filter(Boolean),
+        }),
+        getOptions:        (ctx) => (ctx.cameras || []).map(c => ({ value: c._id, label: `Camera ${formatId(c._id)} - ${c.status}` })),
         selectLabel:       'Select New Camera', selectPlaceholder: 'Select camera...',
-        onLink:    (item, id, ctx) => ctx.onLinkCamera(item._id, id),
-        onUnlink:  (item, ctx)     => ctx.onUnlinkCamera(item._id),
-        onCreate:  (ctx)           => ctx.onCreateCamera(),
+        onLink:    (item, id,  ctx) => ctx.onLinkCamera(item._id, id),
+        onUnlink:  (item, ctx)      => ctx.onUnlinkCamera(item._id),
+        onCreate:  (ctx)            => ctx.onCreateCamera(),
         linkLabel: '🔗 Link Camera', createLabel: '➕ Add New Camera',
-      }),
-      deviceTab({
-        id: 'led', label: '💡 LED', icon: '💡', deviceKey: 'ledId',
-        getOptions:        (ctx) => toOptions.leds(ctx.leds || []),
+      },
+      {
+        id: 'led', label: '💡 LED', type: 'device', deviceKey: 'ledId',
+        sectionTitle:      '💡 LED Management',
+        getDeviceCard:     (device) => ({
+          header: { icon: '💡', title: `LED ${formatId(device._id)}`, subtitle: 'Linked' },
+          fields: [],
+        }),
+        getOptions:        (ctx) => (ctx.leds || []).map(l => ({ value: l._id, label: `LED ${formatId(l._id)}` })),
         selectLabel:       'Select New LED', selectPlaceholder: 'Select LED...',
-        onLink:    (item, id, ctx) => ctx.onLinkLED(item._id, id),
-        onUnlink:  (item, ctx)     => ctx.onUnlinkLED(item._id),
-        onCreate:  (ctx)           => ctx.onCreateLED(),
+        onLink:    (item, id,  ctx) => ctx.onLinkLED(item._id, id),
+        onUnlink:  (item, ctx)      => ctx.onUnlinkLED(item._id),
+        onCreate:  (ctx)            => ctx.onCreateLED(),
         linkLabel: '🔗 Link LED', createLabel: '➕ Add New LED',
-      }),
+      },
     ],
   },
 };
