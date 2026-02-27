@@ -1,9 +1,14 @@
-import PropTypes from 'prop-types';
 import { Button } from './Button';
 
 /**
  * Pagination — numbered page navigation with automatic ellipsis.
  * Returns `null` when `totalPages <= 1` — no need to guard at the call-site.
+ *
+ * @param {object} props
+ * @param {number} props.currentPage - Currently active page (1-based)
+ * @param {number} props.totalPages - Total number of pages
+ * @param {boolean} props.hasMore - Whether a next page exists
+ * @param {(page: number) => void} props.onPageChange - Called with the new page number when the user navigates
  *
  * @example
  * <Pagination
@@ -55,14 +60,3 @@ export function Pagination({ currentPage, totalPages, hasMore, onPageChange }) {
     </div>
   );
 }
-
-Pagination.propTypes = {
-  /** Currently active page (1-based) */
-  currentPage: PropTypes.number.isRequired,
-  /** Total number of pages */
-  totalPages: PropTypes.number.isRequired,
-  /** Whether a next page exists */
-  hasMore: PropTypes.bool.isRequired,
-  /** Called with the new page number when the user navigates */
-  onPageChange: PropTypes.func.isRequired,
-};

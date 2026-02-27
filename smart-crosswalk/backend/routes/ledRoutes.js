@@ -1,48 +1,24 @@
-import express from 'express';
-import asyncHandler from 'express-async-handler';
-import * as ledService from '../services/ledService.js';
+import express from "express";
+import {
+  getAllLEDs,
+  getLEDById,
+  createLED,
+  deleteLED,
+} from "../controllers/ledControllers.js";
+import { validateObjectId } from "../middleware/common/validateObjectId.js";
 
 const router = express.Router();
 
-// @route   GET /api/leds
-// @desc    Get all LEDs
-router.get('/', asyncHandler(async (req, res) => {
-  const leds = await ledService.getAllLEDs();
-  res.json({
-    success: true,
-    count: leds.length,
-    data: leds
-  });
-}));
+// GET /api/leds - Get all LEDs
+router.get("/", getAllLEDs);
 
-// @route   GET /api/leds/:id
-// @desc    Get LED by ID
-router.get('/:id', asyncHandler(async (req, res) => {
-  const led = await ledService.getLEDById(req.params.id);
-  res.json({
-    success: true,
-    data: led
-  });
-}));
+// GET /api/leds/:id - Get LED by ID
+router.get("/:id", validateObjectId(), getLEDById);
 
-// @route   POST /api/leds
-// @desc    Create new LED
-router.post('/', asyncHandler(async (req, res) => {
-  const led = await ledService.createLED(req.body);
-  res.status(201).json({
-    success: true,
-    data: led
-  });
-}));
+// POST /api/leds - Create new LED
+router.post("/", createLED);
 
-// @route   DELETE /api/leds/:id
-// @desc    Delete LED
-router.delete('/:id', asyncHandler(async (req, res) => {
-  await ledService.deleteLED(req.params.id);
-  res.json({
-    success: true,
-    message: 'LED deleted successfully'
-  });
-}));
+// DELETE /api/leds/:id - Delete LED
+router.delete("/:id", validateObjectId(), deleteLED);
 
 export default router;

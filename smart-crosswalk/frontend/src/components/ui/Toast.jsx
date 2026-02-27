@@ -1,4 +1,3 @@
-import PropTypes from 'prop-types';
 import { createContext, useContext, useState, useCallback } from 'react';
 import { cn } from '../../utils';
 
@@ -8,6 +7,9 @@ const ToastContext = createContext(null);
  * ToastProvider — context provider that exposes `addToast` / `removeToast`.
  * Renders a fixed `ToastContainer` at the bottom-left of the viewport.
  * Must wrap any component that calls `useToast()`.
+ *
+ * @param {object} props
+ * @param {React.ReactNode} props.children
  *
  * @example
  * // In App.jsx
@@ -51,6 +53,11 @@ export function useToast() {
   return context;
 }
 
+/**
+ * @param {object} props
+ * @param {{ id: number, message: string, type: 'success'|'error'|'warning'|'info' }[]} props.toasts
+ * @param {(id: number) => void} props.removeToast
+ */
 function ToastContainer({ toasts, removeToast }) {
   return (
     <div className="fixed bottom-4 left-4 z-50 flex flex-col gap-2 max-w-sm">
@@ -80,6 +87,12 @@ const toastIcons = {
   info: 'ℹ'
 };
 
+/**
+ * @param {object} props
+ * @param {string} props.message - Text content of the notification
+ * @param {'success'|'error'|'warning'|'info'} [props.type='info'] - Colour / icon theme
+ * @param {() => void} props.onClose - Called when the close button is clicked
+ */
 function Toast({ message, type = 'info', onClose }) {
   return (
     <div
@@ -102,27 +115,3 @@ function Toast({ message, type = 'info', onClose }) {
     </div>
   );
 }
-
-ToastProvider.propTypes = {
-  children: PropTypes.node.isRequired,
-};
-
-ToastContainer.propTypes = {
-  toasts: PropTypes.arrayOf(
-    PropTypes.shape({
-      id: PropTypes.number.isRequired,
-      message: PropTypes.string.isRequired,
-      type: PropTypes.oneOf(['success', 'error', 'warning', 'info']).isRequired,
-    })
-  ).isRequired,
-  removeToast: PropTypes.func.isRequired,
-};
-
-Toast.propTypes = {
-  /** Text content of the notification */
-  message: PropTypes.string.isRequired,
-  /** Colour / icon theme */
-  type: PropTypes.oneOf(['success', 'error', 'warning', 'info']),
-  /** Called when the close button is clicked */
-  onClose: PropTypes.func.isRequired,
-};

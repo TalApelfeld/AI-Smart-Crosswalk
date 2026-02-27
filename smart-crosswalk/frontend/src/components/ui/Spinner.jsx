@@ -1,9 +1,12 @@
-import PropTypes from 'prop-types';
 import { cn } from '../../utils';
 
 /**
  * Spinner — animated SVG loading indicator.
  * Three size tokens map to predefined Tailwind dimensions.
+ *
+ * @param {object} props
+ * @param {'sm'|'md'|'lg'} [props.size='md'] - Size token
+ * @param {string} [props.className] - Extra Tailwind classes
  *
  * @example
  * <Spinner size="lg" />
@@ -43,6 +46,9 @@ export function Spinner({ size = 'md', className }) {
  * LoadingScreen — full-height centred spinner with an optional message.
  * Drop it as the sole return value of a component while data is loading.
  *
+ * @param {object} props
+ * @param {string} [props.message='Loading...'] - Message displayed beneath the spinner
+ *
  * @example
  * if (loading) return <LoadingScreen message="Loading alerts..." />;
  */
@@ -54,15 +60,3 @@ export function LoadingScreen({ message = 'Loading...' }) {
     </div>
   );
 }
-
-Spinner.propTypes = {
-  /** Size token */
-  size: PropTypes.oneOf(['sm', 'md', 'lg']),
-  /** Extra Tailwind classes */
-  className: PropTypes.string,
-};
-
-LoadingScreen.propTypes = {
-  /** Message displayed beneath the spinner */
-  message: PropTypes.string,
-};

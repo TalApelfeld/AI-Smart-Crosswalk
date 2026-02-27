@@ -1,4 +1,3 @@
-import PropTypes from 'prop-types';
 import { cn } from '../../utils';
 import { Input } from './Input';
 import { Button } from './Button';
@@ -9,6 +8,13 @@ import { Button } from './Button';
  *
  * Used internally by `SearchBar` (which wraps it in a card) and directly by
  * `FilterBar` (which already lives inside a card).
+ *
+ * @param {object} props
+ * @param {string} props.value - Controlled search query string
+ * @param {(value: string) => void} props.onChange - Called with the new string on every keystroke, or '' on clear
+ * @param {string} [props.placeholder='Search...']
+ * @param {string} [props.label] - Optional label rendered above the input (aligns with Select / DateRangePicker)
+ * @param {string} [props.className]
  *
  * @example
  * <SearchInput
@@ -52,7 +58,7 @@ export function SearchInput({ value, onChange, placeholder = 'Search...', label,
             variant="ghost"
             size="sm"
             onClick={() => onChange('')}
-            className="absolute right-1 top-1/2 -translate-y-1/2 !p-1 text-gray-400 hover:text-gray-600"
+            className="absolute right-1 top-1/2 -translate-y-1/2 p-1! text-gray-400 hover:text-gray-600"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
@@ -68,14 +74,3 @@ export function SearchInput({ value, onChange, placeholder = 'Search...', label,
     </div>
   );
 }
-
-SearchInput.propTypes = {
-  /** Controlled search query string */
-  value: PropTypes.string.isRequired,
-  /** Called with the new string on every keystroke, or '' on clear */
-  onChange: PropTypes.func.isRequired,
-  placeholder: PropTypes.string,
-  /** Optional label rendered above the input (aligns with Select / DateRangePicker) */
-  label: PropTypes.string,
-  className: PropTypes.string,
-};

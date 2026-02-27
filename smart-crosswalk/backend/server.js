@@ -1,14 +1,11 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import path from 'path';
 import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
 import connectDB from './config/db.js';
 import { alertRoutes, crosswalkRoutes, cameraRoutes, ledRoutes } from './routes/index.js';
 import { notFound, errorHandler } from './middleware/errorMiddleware.js';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 // Load environment variables
 dotenv.config();
@@ -27,8 +24,10 @@ app.use(cors({
 }));
 app.use(express.json({ limit: '10mb' }));
 
-// Serve uploaded images statically
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+// Serve YOLO detection output images as static files
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+app.use('/api/images', express.static(join(__dirname, 'ai', 'mocks_img_output')));
 
 // API Routes
 app.use('/api/alerts', alertRoutes);

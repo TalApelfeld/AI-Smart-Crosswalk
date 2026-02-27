@@ -1,11 +1,22 @@
-import PropTypes from 'prop-types';
 import { cn } from '../../utils';
+
+/**
+ * @typedef {{ value: string, label: string }} SelectOption
+ */
 
 /**
  * Select — controlled dropdown with optional label and validation error.
  * Accepts either an `options` array `[{ value, label }]` or `children`
  * (raw `<option>` elements) for more complex option lists.
  * Calls `onChange(value: string)` — not a native event.
+ *
+ * @param {Omit<React.ComponentProps<'select'>, 'onChange'> & {
+ *   label?: string,
+ *   options?: SelectOption[],
+ *   placeholder?: string,
+ *   error?: string,
+ *   onChange: (value: string) => void
+ * }} props
  *
  * @example
  * <Select label="Status" value={status} onChange={setStatus}
@@ -39,7 +50,7 @@ export function Select({
         disabled={disabled}
         className={cn(
           'w-full px-3 py-2 border rounded-lg transition-colors',
-          'focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500',
+          'focus:outline-hidden focus:ring-2 focus:ring-primary-500 focus:border-primary-500',
           error 
             ? 'border-danger-500 focus:ring-danger-500 focus:border-danger-500' 
             : 'border-surface-300',
@@ -70,25 +81,3 @@ export function Select({
     </div>
   );
 }
-
-Select.propTypes = {
-  /** Field label rendered above the select */
-  label: PropTypes.string,
-  /** Controlled value */
-  value: PropTypes.string,
-  /** Called with the selected string value */
-  onChange: PropTypes.func.isRequired,
-  /** Options array rendered as `<option>` elements */
-  options: PropTypes.arrayOf(
-    PropTypes.shape({ value: PropTypes.string.isRequired, label: PropTypes.string.isRequired })
-  ),
-  /** Disabled placeholder shown when no value is selected */
-  placeholder: PropTypes.string,
-  /** Validation error message */
-  error: PropTypes.string,
-  required: PropTypes.bool,
-  disabled: PropTypes.bool,
-  className: PropTypes.string,
-  /** Raw `<option>` elements — overrides the `options` array */
-  children: PropTypes.node,
-};

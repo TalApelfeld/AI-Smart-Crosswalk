@@ -1,8 +1,8 @@
-import { Routes, Route } from 'react-router-dom';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
-import { Navbar, ToastProvider } from './components/ui';
-import { Dashboard, Alerts, Crosswalks, CrosswalkDetailsPage } from './pages';
+import { Routes, Route } from "react-router-dom";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
+import { Navbar, ToastProvider } from "./components/ui";
+import { Dashboard, Alerts, Crosswalks, CrosswalkDetailsPage } from "./pages";
 
 /**
  * queryClient — global React-Query cache shared across all pages.
@@ -12,7 +12,7 @@ const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       staleTime: 5 * 60 * 1000,
-      cacheTime: 10 * 60 * 1000,
+      gcTime: 10 * 60 * 1000,
       refetchOnWindowFocus: false,
       retry: 1,
     },
@@ -28,6 +28,7 @@ const queryClient = new QueryClient({
  * - `<Routes>` (four page routes)
  * - `ReactQueryDevtools` (development only)
  */
+
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
@@ -39,7 +40,10 @@ function App() {
               <Route path="/" element={<Dashboard />} />
               <Route path="/alerts" element={<Alerts />} />
               <Route path="/crosswalks" element={<Crosswalks />} />
-              <Route path="/crosswalks/:id" element={<CrosswalkDetailsPage />} />
+              <Route
+                path="/crosswalks/:id"
+                element={<CrosswalkDetailsPage />}
+              />
             </Routes>
           </main>
         </div>

@@ -1,4 +1,3 @@
-import PropTypes from 'prop-types';
 import { useState } from 'react';
 import { Button } from '../ui';
 
@@ -38,6 +37,13 @@ const PRESETS = [
  * DateRangePicker — date range selector with quick presets and a
  * custom date-input mode.  Calls `onChange({ startDate, endDate })`
  * where each value is an ISO string or `null`.
+ *
+ * @param {object} props
+ * @param {string} [props.label] - Label rendered above the preset buttons
+ * @param {string|null} [props.startDate] - ISO string or null for the range start
+ * @param {string|null} [props.endDate] - ISO string or null for the range end
+ * @param {(range: { startDate: string|null, endDate: string|null }) => void} props.onChange - Called with the date range
+ * @param {Date} [props.maxDate] - Latest selectable date (defaults to today)
  *
  * @example
  * <DateRangePicker
@@ -127,7 +133,7 @@ export function DateRangePicker({ label, startDate, endDate, onChange, maxDate =
               value={localStart}
               onChange={(e) => setLocalStart(e.target.value)}
               max={localEnd || maxDateStr}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
             />
           </div>
           <div className="flex-1">
@@ -140,7 +146,7 @@ export function DateRangePicker({ label, startDate, endDate, onChange, maxDate =
               onChange={(e) => setLocalEnd(e.target.value)}
               min={localStart}
               max={maxDateStr}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
             />
           </div>
           <Button
@@ -154,16 +160,3 @@ export function DateRangePicker({ label, startDate, endDate, onChange, maxDate =
     </div>
   );
 }
-
-DateRangePicker.propTypes = {
-  /** Label rendered above the preset buttons */
-  label: PropTypes.string,
-  /** ISO string or null for the range start */
-  startDate: PropTypes.string,
-  /** ISO string or null for the range end */
-  endDate: PropTypes.string,
-  /** Called with `{ startDate: string|null, endDate: string|null }` */
-  onChange: PropTypes.func.isRequired,
-  /** Latest selectable date (defaults to today) */
-  maxDate: PropTypes.instanceOf(Date),
-};

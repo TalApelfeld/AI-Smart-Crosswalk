@@ -1,12 +1,13 @@
-import PropTypes from 'prop-types';
 import { cn } from '../../utils';
 
+const base = 'inline-flex items-center justify-center rounded-lg font-medium transition-all duration-200 cursor-pointer focus:outline-hidden focus:ring-2 focus:ring-offset-2';
+
 const variants = {
-  primary: 'btn-primary',
-  secondary: 'btn-secondary',
-  danger: 'btn-danger',
-  success: 'btn-success',
-  ghost: 'btn bg-transparent hover:bg-surface-100 text-surface-700'
+  primary:   `${base} bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500`,
+  secondary: `${base} bg-gray-200 text-gray-800 hover:bg-gray-300 focus:ring-gray-500`,
+  danger:    `${base} bg-red-600 text-white hover:bg-red-700 focus:ring-red-500`,
+  success:   `${base} bg-green-600 text-white hover:bg-green-700 focus:ring-green-500`,
+  ghost:     `${base} bg-transparent hover:bg-surface-100 text-surface-700`,
 };
 
 const sizes = {
@@ -19,6 +20,13 @@ const sizes = {
  * Button — universal action trigger.
  * Supports multiple visual variants, size tokens, and a built-in loading
  * spinner that disables the element while an async action is running.
+ *
+ * @param {React.ComponentProps<'button'> & {
+ *   variant?: 'primary'|'secondary'|'danger'|'success'|'ghost',
+ *   size?: 'sm'|'md'|'lg',
+ *   loading?: boolean,
+ *   fullWidth?: boolean
+ * }} props
  *
  * @example
  * <Button variant="primary" loading={saving} onClick={save}>Save</Button>
@@ -72,20 +80,3 @@ export function Button({
     </button>
   );
 }
-
-Button.propTypes = {
-  /** Button content */
-  children: PropTypes.node.isRequired,
-  /** Visual style variant */
-  variant: PropTypes.oneOf(['primary', 'secondary', 'danger', 'success', 'ghost']),
-  /** Size token */
-  size: PropTypes.oneOf(['sm', 'md', 'lg']),
-  /** Extra Tailwind classes */
-  className: PropTypes.string,
-  /** Disables the button */
-  disabled: PropTypes.bool,
-  /** Shows a spinner and disables the button */
-  loading: PropTypes.bool,
-  /** Stretches the button to 100 % of its container */
-  fullWidth: PropTypes.bool,
-};

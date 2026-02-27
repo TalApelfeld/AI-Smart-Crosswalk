@@ -1,4 +1,3 @@
-import PropTypes from 'prop-types';
 import { useEffect } from 'react';
 import { cn } from '../../utils';
 
@@ -7,6 +6,13 @@ import { cn } from '../../utils';
  * Closes on Escape key press and backdrop click.
  * Locks body scroll while open.
  * Compose with DialogHeader / DialogTitle / DialogContent / DialogFooter.
+ *
+ * @param {object} props
+ * @param {boolean} props.open - Controls visibility
+ * @param {() => void} props.onClose - Called when the user dismisses the dialog (Escape or backdrop click)
+ * @param {React.ReactNode} [props.children]
+ * @param {string} [props.className]
+ * @param {string} [props.maxWidth='max-w-lg'] - Max-width Tailwind class e.g. "max-w-md"
  *
  * @example
  * <Dialog open={open} onClose={close} maxWidth="max-w-lg">
@@ -72,6 +78,11 @@ export function Dialog({
   );
 }
 
+/**
+ * @param {object} props
+ * @param {React.ReactNode} [props.children]
+ * @param {string} [props.className]
+ */
 export function DialogHeader({ children, className }) {
   return (
     <div className={cn('px-6 py-4 border-b border-surface-200', className)}>
@@ -80,6 +91,11 @@ export function DialogHeader({ children, className }) {
   );
 }
 
+/**
+ * @param {object} props
+ * @param {React.ReactNode} [props.children]
+ * @param {string} [props.className]
+ */
 export function DialogTitle({ children, className }) {
   return (
     <h2 className={cn('text-xl font-semibold text-surface-900', className)}>
@@ -88,6 +104,11 @@ export function DialogTitle({ children, className }) {
   );
 }
 
+/**
+ * @param {object} props
+ * @param {React.ReactNode} [props.children]
+ * @param {string} [props.className]
+ */
 export function DialogDescription({ children, className }) {
   return (
     <p className={cn('text-sm text-surface-500 mt-1', className)}>
@@ -96,6 +117,11 @@ export function DialogDescription({ children, className }) {
   );
 }
 
+/**
+ * @param {object} props
+ * @param {React.ReactNode} [props.children]
+ * @param {string} [props.className]
+ */
 export function DialogContent({ children, className }) {
   return (
     <div className={cn('px-6 py-4', className)}>
@@ -104,6 +130,11 @@ export function DialogContent({ children, className }) {
   );
 }
 
+/**
+ * @param {object} props
+ * @param {React.ReactNode} [props.children]
+ * @param {string} [props.className]
+ */
 export function DialogFooter({ children, className }) {
   return (
     <div className={cn('px-6 py-4 border-t border-surface-200 flex justify-end gap-3', className)}>
@@ -111,22 +142,3 @@ export function DialogFooter({ children, className }) {
     </div>
   );
 }
-
-const childrenShape = { children: PropTypes.node, className: PropTypes.string };
-
-Dialog.propTypes = {
-  /** Controls visibility */
-  open: PropTypes.bool.isRequired,
-  /** Called when the user dismisses the dialog (Escape or backdrop click) */
-  onClose: PropTypes.func.isRequired,
-  children: PropTypes.node,
-  className: PropTypes.string,
-  /** Max-width Tailwind class e.g. "max-w-md" */
-  maxWidth: PropTypes.string,
-};
-
-DialogHeader.propTypes      = childrenShape;
-DialogTitle.propTypes       = childrenShape;
-DialogDescription.propTypes = childrenShape;
-DialogContent.propTypes     = childrenShape;
-DialogFooter.propTypes      = childrenShape;

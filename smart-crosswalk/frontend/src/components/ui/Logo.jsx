@@ -1,10 +1,11 @@
-import React from 'react';
-import PropTypes from 'prop-types';
 import logoImage from './smart-crosswalk-logo.png';
 
 /**
  * Logo — Smart Crosswalk product mark.
  * Height is derived from `size`; width is proportionally wider.
+ *
+ * @param {object} props
+ * @param {number} [props.size=40] - Base height in pixels (width is 1.3× height)
  *
  * @example
  * <Logo size={40} />
@@ -22,11 +23,6 @@ const Logo = ({ size = 40 }) => {
       }}
     />
   );
-};
-
-Logo.propTypes = {
-  /** Base height in pixels (width is 1.3× height) */
-  size: PropTypes.number,
 };
 
 export default Logo;

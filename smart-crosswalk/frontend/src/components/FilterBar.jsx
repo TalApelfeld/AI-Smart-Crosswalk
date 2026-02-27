@@ -1,6 +1,24 @@
-import PropTypes from 'prop-types';
 import { useState } from 'react';
 import { Button, Card, Badge, DateRangePicker, Select, SearchInput } from './ui';
+
+/**
+ * @typedef {object} DateRange
+ * @property {string} [startDate]
+ * @property {string} [endDate]
+ */
+
+/**
+ * @typedef {object} FilterState
+ * @property {string} [dangerLevel]
+ * @property {string} [crosswalkSearch]
+ * @property {DateRange} [dateRange]
+ */
+
+/**
+ * @typedef {object} CrosswalkRef
+ * @property {string} _id
+ * @property {{ city?: string, street?: string, number?: string|number }} [location]
+ */
 
 // Static config per filter key — drives labels, types, and select options.
 const FILTER_CONFIG = {
@@ -13,7 +31,12 @@ const FILTER_CONFIG = {
  * FilterBar — collapsible panel with alert-specific filter controls.
  * Supports danger-level select, crosswalk text search, and a date-range
  * picker.  Renders an "Active" badge whenever any filter is non-default.
- * Stateless regarding filter values; all state lives in the parent page.
+ *
+ * @param {object} props
+ * @param {FilterState} props.filters - Current filter state object
+ * @param {(filters: FilterState) => void} props.onFilterChange - Called with the full updated filters object on each change
+ * @param {() => void} props.onClear - Called when the "Clear All" button is clicked
+ * @param {CrosswalkRef[]} [props.crosswalks=[]] - List of crosswalk documents for the crosswalk-ID filter
  *
  * @example
  * <FilterBar
@@ -36,7 +59,7 @@ export function FilterBar({ filters, onFilterChange, onClear, crosswalks = [] })
     (filters.dateRange?.startDate || filters.dateRange?.endDate);
 
   return (
-    <Card className="!p-4 shadow-sm mb-6">
+    <Card className="p-4! shadow-xs mb-6">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <span className="text-lg">🔍</span>
@@ -110,32 +133,4 @@ export function FilterBar({ filters, onFilterChange, onClear, crosswalks = [] })
     </Card>
   );
 }
-
-FilterBar.propTypes = {
-  /** Current filter state object (keys: dangerLevel, crosswalkSearch, dateRange) */
-  filters: PropTypes.shape({
-    dangerLevel:     PropTypes.string,
-    crosswalkSearch: PropTypes.string,
-    dateRange: PropTypes.shape({
-      startDate: PropTypes.string,
-      endDate:   PropTypes.string,
-    }),
-  }).isRequired,
-  /** Called with the full updated filters object on each change */
-  onFilterChange: PropTypes.func.isRequired,
-  /** Called when the "Clear All" button is clicked */
-  onClear: PropTypes.func.isRequired,
-  /** List of crosswalk documents for the crosswalk-ID filter */
-  crosswalks: PropTypes.arrayOf(
-    PropTypes.shape({
-      _id:      PropTypes.string.isRequired,
-      location: PropTypes.shape({
-        city:   PropTypes.string,
-        street: PropTypes.string,
-        number: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
-      }),
-    })
-  ),
-};
-
 

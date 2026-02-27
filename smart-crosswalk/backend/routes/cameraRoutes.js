@@ -1,69 +1,33 @@
-import express from 'express';
-import asyncHandler from 'express-async-handler';
-import * as cameraService from '../services/cameraService.js';
+import express from "express";
+import {
+  getAllCameras,
+  getCameraById,
+  createCamera,
+  updateCameraStatus,
+  updateCamera,
+  deleteCamera,
+} from "../controllers/cameraControllers.js";
+import { validateObjectId } from "../middleware/common/validateObjectId.js";
+import { validateCameraStatus } from "../middleware/cameras/index.js";
 
 const router = express.Router();
 
-// @route   GET /api/cameras
-// @desc    Get all cameras
-router.get('/', asyncHandler(async (req, res) => {
-  const cameras = await cameraService.getAllCameras();
-  res.json({
-    success: true,
-    count: cameras.length,
-    data: cameras
-  });
-}));
+// GET /api/cameras - Get all cameras
+router.get("/", getAllCameras);
 
-// @route   GET /api/cameras/:id
-// @desc    Get camera by ID
-router.get('/:id', asyncHandler(async (req, res) => {
-  const camera = await cameraService.getCameraById(req.params.id);
-  res.json({
-    success: true,
-    data: camera
-  });
-}));
+// GET /api/cameras/:id - Get camera by ID
+router.get("/:id", validateObjectId(), getCameraById);
 
-// @route   POST /api/cameras
-// @desc    Create new camera
-router.post('/', asyncHandler(async (req, res) => {
-  const camera = await cameraService.createCamera(req.body);
-  res.status(201).json({
-    success: true,
-    data: camera
-  });
-}));
+// POST /api/cameras - Create new camera
+router.post("/", createCamera);
 
-// @route   PATCH /api/cameras/:id/status
-// @desc    Update camera status
-router.patch('/:id/status', asyncHandler(async (req, res) => {
-  const { status } = req.body;
-  const camera = await cameraService.updateCameraStatus(req.params.id, status);
-  res.json({
-    success: true,
-    data: camera
-  });
-}));
+// PATCH /api/cameras/:id/status - Update camera status
+router.patch("/:id/status", validateObjectId(), validateCameraStatus, updateCameraStatus);
 
-// @route   PATCH /api/cameras/:id
-// @desc    Update camera (general)
-router.patch('/:id', asyncHandler(async (req, res) => {
-  const camera = await cameraService.updateCamera(req.params.id, req.body);
-  res.json({
-    success: true,
-    data: camera
-  });
-}));
+// PATCH /api/cameras/:id - Update camera (general)
+router.patch("/:id", validateObjectId(), updateCamera);
 
-// @route   DELETE /api/cameras/:id
-// @desc    Delete camera
-router.delete('/:id', asyncHandler(async (req, res) => {
-  await cameraService.deleteCamera(req.params.id);
-  res.json({
-    success: true,
-    message: 'Camera deleted successfully'
-  });
-}));
+// DELETE /api/cameras/:id - Delete camera
+router.delete("/:id", validateObjectId(), deleteCamera);
 
 export default router;

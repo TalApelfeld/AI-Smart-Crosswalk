@@ -1,22 +1,34 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { useCrosswalkDetails } from '../hooks';
-import { Card, CardHeader, CardTitle, CardContent, Button, LoadingScreen, DateRangePicker, Select, Pagination } from '../components/ui';
-import { GenericCRUDLayout, GenericDetailCard, ItemCard } from '../components';
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardContent,
+  Button,
+  LoadingScreen,
+  DateRangePicker,
+  Select,
+  Pagination,
+  PageHeader,
+  Badge,
+} from '../components/ui';
+import { StatsGrid } from '../components/common/StatsGrid';
+import { GenericList } from '../components/common/GenericList';
+import { GenericDetailCard } from '../components/common/GenericDetailCard';
+import { CrosswalkDetailCard } from '../components/crosswalks';
 
 /**
  * CrosswalkDetailsPage — detail view for a single crosswalk.
  *
- * Shows crosswalk metadata (via `ItemCard variant="detail"`) and a paginated,
- * filterable events history list (via `GenericCRUDLayout` with `type="alert"`).
- * Filters (date range + danger level) and pagination are managed by the
- * `useCrosswalkDetails` hook.
+ * Shows crosswalk metadata and a paginated, filterable events history list.
  *
  * Route: `/crosswalks/:id`
  */
 export function CrosswalkDetailsPage() {
   const { id } = useParams();
   const navigate = useNavigate();
-  
+
   const {
     crosswalk,
     alerts,
@@ -28,7 +40,7 @@ export function CrosswalkDetailsPage() {
     goToPage,
     loading,
     isInitialLoading,
-    error
+    error,
   } = useCrosswalkDetails(id);
 
   if (isInitialLoading) {
@@ -61,75 +73,88 @@ export function CrosswalkDetailsPage() {
     );
   }
 
-  const hasActiveFilters = 
-    filters.dateRange.startDate || 
-    filters.dateRange.endDate || 
+  const hasActiveFilters =
+    filters.dateRange.startDate ||
+    filters.dateRange.endDate ||
     filters.dangerLevel !== 'all';
+
+  const eventStats = stats?.byDangerLevel
+    ? [
+        { title: 'Total Events', value: stats.total || 0, icon: '📋', color: 'primary' },
+        { title: 'High Danger', value: stats.byDangerLevel.HIGH || 0, icon: '🚨', color: 'danger' },
+        { title: 'Medium Danger', value: stats.byDangerLevel.MEDIUM || 0, icon: '🚨', color: 'orange' },
+        { title: 'Low Danger', value: stats.byDangerLevel.LOW || 0, icon: '🚨', color: 'warning' },
+      ]
+    : [];
 
   return (
     <div className="space-y-6">
       {/* Back Button */}
-      <Button variant="ghost" onClick={() => navigate('/crosswalks')} className="self-start flex items-center gap-1">
+      <Button
+        variant="ghost"
+        onClick={() => navigate('/crosswalks')}
+        className="self-start flex items-center gap-1"
+      >
         ← Back to Crosswalks
       </Button>
 
       {/* Header - Crosswalk Details */}
-      <ItemCard item={crosswalk} type="crosswalk" variant="detail" />
+      <CrosswalkDetailCard item={crosswalk} />
 
-      {/* Events History — uses GenericCRUDLayout like Crosswalks/Alerts pages */}
-      <GenericCRUDLayout
+      {/* Events History Header */}
+      <PageHeader
         title="Events History"
-        headerBadges={pagination.totalAlerts > 0 ? [{ label: `${pagination.totalAlerts} total`, variant: 'default' }] : []}
-        stats={stats?.byDangerLevel ? [
-          { title: 'Total Events',  value: stats.total || 0,                icon: '📋', color: 'primary' },
-          { title: 'High Danger',   value: stats.byDangerLevel.HIGH || 0,   icon: '🚨', color: 'danger'  },
-          { title: 'Medium Danger', value: stats.byDangerLevel.MEDIUM || 0, icon: '🚨', color: 'orange'  },
-          { title: 'Low Danger',    value: stats.byDangerLevel.LOW || 0,    icon: '🚨', color: 'warning' },
-        ] : undefined}
-        statsCols={4}
-        items={alerts}
-        allItems={alerts}
-        loading={false}
-        type="alert"
-        itemProps={{ variant: 'history' }}
-        keyExtractor={(alert) => alert._id}
+        actions={
+          pagination.totalAlerts > 0 ? (
+            <Badge variant="default">{pagination.totalAlerts} total</Badge>
+          ) : null
+        }
+      />
+
+      {/* Stats */}
+      {eventStats.length > 0 && <StatsGrid stats={eventStats} cols={4} />}
+
+      {/* Filters */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CardTitle>Filter Events</CardTitle>
+            {hasActiveFilters && (
+              <Button variant="secondary" size="sm" onClick={clearFilters}>
+                Clear Filters
+              </Button>
+            )}
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <DateRangePicker
+            label="Date Range"
+            startDate={filters.dateRange.startDate}
+            endDate={filters.dateRange.endDate}
+            onChange={(dateRange) => updateFilters({ dateRange })}
+          />
+          <Select
+            label="Danger Level"
+            value={filters.dangerLevel}
+            onChange={(value) => updateFilters({ dangerLevel: value })}
+          >
+            <option value="all">All Levels</option>
+            <option value="HIGH">High</option>
+            <option value="MEDIUM">Medium</option>
+            <option value="LOW">Low</option>
+          </Select>
+        </CardContent>
+      </Card>
+
+      {/* Alert History List */}
+      <GenericList
+        type="alert-history"
+        data={alerts}
         emptyIcon="📭"
         emptyTitle="No Events Found"
         emptyMessage={hasActiveFilters
           ? 'Try adjusting your filters to see more results.'
           : 'No alerts have been recorded for this crosswalk yet.'}
-        filtersSection={
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle>Filter Events</CardTitle>
-                {hasActiveFilters && (
-                  <Button variant="secondary" size="sm" onClick={clearFilters}>
-                    Clear Filters
-                  </Button>
-                )}
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <DateRangePicker
-                label="Date Range"
-                startDate={filters.dateRange.startDate}
-                endDate={filters.dateRange.endDate}
-                onChange={(dateRange) => updateFilters({ dateRange })}
-              />
-              <Select
-                label="Danger Level"
-                value={filters.dangerLevel}
-                onChange={(value) => updateFilters({ dangerLevel: value })}
-              >
-                <option value="all">All Levels</option>
-                <option value="HIGH">High</option>
-                <option value="MEDIUM">Medium</option>
-                <option value="LOW">Low</option>
-              </Select>
-            </CardContent>
-          </Card>
-        }
       />
 
       <Pagination
@@ -141,4 +166,3 @@ export function CrosswalkDetailsPage() {
     </div>
   );
 }
-

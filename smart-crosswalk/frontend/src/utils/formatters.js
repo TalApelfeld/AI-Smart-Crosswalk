@@ -51,15 +51,13 @@ export function formatStatus(status) {
 }
 
 /**
- * Normalises relative paths and plain filenames to a full `/uploads` URL
- * that Express can serve.
+ * Returns the image URL as-is (Cloudinary URLs are already absolute).
+ * Returns null for falsy inputs.
  * @param {string|null} url
  * @returns {string|null}
  */
 export function getImageUrl(url) {
-  if (!url) return null;
-  if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('/uploads')) return url;
-  return url.startsWith('/') ? url : `/uploads/alerts/${url}`;
+  return url || null;
 }
 
 /**

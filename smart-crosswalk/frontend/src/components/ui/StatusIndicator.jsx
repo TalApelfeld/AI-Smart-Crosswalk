@@ -1,5 +1,3 @@
-import PropTypes from 'prop-types';
-
 const STATUS_STYLES = {
   online:    { text: 'text-success-600', dot: 'bg-success-500'  },
   connected: { text: 'text-success-600', dot: 'bg-success-500'  },
@@ -8,10 +6,11 @@ const STATUS_STYLES = {
 };
 
 /**
- * StatusIndicator
- * Renders a pulsing coloured dot + label for system status rows.
- * @param {'online'|'connected'|'offline'|'warning'} status
- * @param {string} label - Override display text
+ * StatusIndicator — pulsing coloured dot + label for system status rows.
+ *
+ * @param {object} props
+ * @param {'online'|'connected'|'offline'|'warning'} [props.status='online'] - Connection / system state — drives the dot colour
+ * @param {string} [props.label] - Override the default capitalised status label
  */
 export function StatusIndicator({ status = 'online', label }) {
   const style = STATUS_STYLES[status] || STATUS_STYLES.online;
@@ -23,10 +22,3 @@ export function StatusIndicator({ status = 'online', label }) {
     </span>
   );
 }
-
-StatusIndicator.propTypes = {
-  /** Connection / system state — drives the dot colour */
-  status: PropTypes.oneOf(['online', 'connected', 'offline', 'warning']),
-  /** Override the default capitalised status label */
-  label: PropTypes.string,
-};

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { crosswalksApi } from '../api';
+import { queryKeys } from './queryKeys';
 
 // Hook for the crosswalk detail page. Loads a single crosswalk, its alerts and its statistics.
 export function useCrosswalkDetails(crosswalkId) {
@@ -22,7 +23,7 @@ export function useCrosswalkDetails(crosswalkId) {
     isLoading: crosswalkLoading,
     error: crosswalkError
   } = useQuery({
-    queryKey: ['crosswalk', crosswalkId],
+    queryKey: queryKeys.crosswalks.detail(crosswalkId),
     queryFn: async () => {
       const response = await crosswalksApi.getById(crosswalkId);
       return response.data;
@@ -30,12 +31,12 @@ export function useCrosswalkDetails(crosswalkId) {
     enabled: !!crosswalkId,
     // Use data from crosswalks cache if available (instant display)
     initialData: () => {
-      const crosswalks = queryClient.getQueryData(['crosswalks']);
+      const crosswalks = queryClient.getQueryData(queryKeys.crosswalks.all);
       return crosswalks?.find(c => c._id === crosswalkId);
     },
     // Keep the cached data for 1 minute before refetching
     initialDataUpdatedAt: () => {
-      return queryClient.getQueryState(['crosswalks'])?.dataUpdatedAt;
+      return queryClient.getQueryState(queryKeys.crosswalks.all)?.dataUpdatedAt;
     },
   });
 
@@ -47,7 +48,7 @@ export function useCrosswalkDetails(crosswalkId) {
     error: alertsError,
     refetch: refetchAlerts
   } = useQuery({
-    queryKey: ['crosswalk-alerts', crosswalkId, filters, currentPage],
+    queryKey: queryKeys.crosswalks.alerts(crosswalkId, filters, currentPage),
     queryFn: async () => {
       const response = await crosswalksApi.getAlerts(crosswalkId, {
         startDate: filters.dateRange.startDate,
@@ -70,7 +71,7 @@ export function useCrosswalkDetails(crosswalkId) {
     isLoading: statsLoading,
     error: statsError
   } = useQuery({
-    queryKey: ['crosswalk-stats', crosswalkId],
+    queryKey: queryKeys.crosswalks.detailStats(crosswalkId),
     queryFn: async () => {
       const response = await crosswalksApi.getCrosswalkStats(crosswalkId);
       return response.data;

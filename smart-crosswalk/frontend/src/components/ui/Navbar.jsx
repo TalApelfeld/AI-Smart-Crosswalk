@@ -1,12 +1,11 @@
-import PropTypes from 'prop-types';
-import { Link, useLocation } from 'react-router-dom';
-import { cn } from '../../utils';
-import { Logo } from '../ui';
+import { Link, useLocation } from "react-router-dom";
+import { cn } from "../../utils";
+import { Logo } from "../ui";
 
 const navLinks = [
-  { to: '/', label: 'Dashboard' },
-  { to: '/alerts', label: 'Alerts' },
-  { to: '/crosswalks', label: 'Crosswalks' }
+  { to: "/", label: "Dashboard" },
+  { to: "/alerts", label: "Alerts" },
+  { to: "/crosswalks", label: "Crosswalks" },
 ];
 
 /**
@@ -39,10 +38,10 @@ export function Navbar() {
                 key={link.to}
                 to={link.to}
                 className={cn(
-                  'px-4 py-2 rounded-lg text-sm font-medium transition-colors',
+                  "px-4 py-2 rounded-lg text-sm font-medium transition-colors",
                   location.pathname === link.to
-                    ? 'bg-primary-600 text-white'
-                    : 'text-surface-300 hover:text-white hover:bg-surface-800'
+                    ? "bg-primary-600 text-white"
+                    : "text-surface-300 hover:text-white hover:bg-surface-800",
                 )}
               >
                 {link.label}

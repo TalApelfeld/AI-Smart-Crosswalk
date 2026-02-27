@@ -1,10 +1,15 @@
-import PropTypes from 'prop-types';
 import { cn } from '../../utils';
 
 /**
  * Input — controlled text field with optional label, validation error, and
  * disabled state.  Calls `onChange(value: string)` — not a native event —
  * so it integrates naturally with form-state helpers.
+ *
+ * @param {Omit<React.ComponentProps<'input'>, 'onChange'> & {
+ *   label?: string,
+ *   error?: string,
+ *   onChange: (value: string) => void
+ * }} props
  *
  * @example
  * <Input label="City" value={city} onChange={setCity} required />
@@ -38,7 +43,7 @@ export function Input({
         disabled={disabled}
         className={cn(
           'w-full px-3 py-2 border rounded-lg transition-colors',
-          'focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500',
+          'focus:outline-hidden focus:ring-2 focus:ring-primary-500 focus:border-primary-500',
           error 
             ? 'border-danger-500 focus:ring-danger-500 focus:border-danger-500' 
             : 'border-surface-300',
@@ -54,21 +59,3 @@ export function Input({
     </div>
   );
 }
-
-Input.propTypes = {
-  /** Field label rendered above the input */
-  label: PropTypes.string,
-  /** Controlled value */
-  value: PropTypes.string,
-  /** Called with the new string value on every keystroke */
-  onChange: PropTypes.func.isRequired,
-  /** Native input type */
-  type: PropTypes.string,
-  placeholder: PropTypes.string,
-  /** Validation error message shown below the input */
-  error: PropTypes.string,
-  /** Adds a red asterisk to the label */
-  required: PropTypes.bool,
-  disabled: PropTypes.bool,
-  className: PropTypes.string,
-};

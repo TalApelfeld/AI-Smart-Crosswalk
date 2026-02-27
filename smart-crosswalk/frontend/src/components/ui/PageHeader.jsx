@@ -1,8 +1,11 @@
-import PropTypes from 'prop-types';
-
 /**
  * PageHeader — top-of-page title block with optional description and
  * action slot (right-aligned on wider screens).
+ *
+ * @param {object} props
+ * @param {string} props.title - Main heading
+ * @param {string} [props.description] - Subtitle shown beneath the heading
+ * @param {React.ReactNode} [props.actions] - Right-side action slot — usually a Button or group of buttons
  *
  * @example
  * <PageHeader
@@ -28,12 +31,3 @@ export function PageHeader({ title, description, actions }) {
     </div>
   );
 }
-
-PageHeader.propTypes = {
-  /** Main heading */
-  title: PropTypes.string.isRequired,
-  /** Subtitle shown beneath the heading */
-  description: PropTypes.string,
-  /** Right-side action slot — usually a `<Button>` or group of buttons */
-  actions: PropTypes.node,
-};
