@@ -10,9 +10,12 @@ import { useAlertMutations } from "./useAlertMutations";
  */
 export function useAlerts(autoRefresh = true, refreshInterval = 5000) {
   const opts = { autoRefresh, refreshInterval };
-  const { alerts, loading, error, refetch } = useAlertList(opts);
+  const { alerts, loading, loadingMore, hasMore, loadMore, error, refetch } = useAlertList(opts);
   const { stats } = useAlertStats(opts);
   const { createAlert, updateAlert, deleteAlert } = useAlertMutations();
 
-  return { alerts, stats, loading, error, refetch, createAlert, updateAlert, deleteAlert };
+  return {
+    alerts, stats, loading, loadingMore, hasMore, loadMore,
+    error, refetch, createAlert, updateAlert, deleteAlert,
+  };
 }

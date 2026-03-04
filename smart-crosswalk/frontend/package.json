@@ -19,6 +19,7 @@
   },
   "devDependencies": {
     "@tailwindcss/vite": "^4.2.1",
+    "@tanstack/eslint-plugin-query": "^5.91.4",
     "@vitejs/plugin-react": "^4.2.0",
     "tailwindcss": "^4.2.1",
     "vite": "^5.0.0"

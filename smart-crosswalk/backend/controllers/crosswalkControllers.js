@@ -4,18 +4,38 @@ import Camera from "../models/Camera.js";
 import LED from "../models/LED.js";
 import Alert from "../models/Alert.js";
 
-// GET /api/crosswalks - Get all crosswalks
+// GET /api/crosswalks - Get all crosswalks (paginated)
 export async function getAllCrosswalks(req, res, next) {
   try {
-    const crosswalks = await Crosswalk.find()
-      .populate("cameraId")
-      .populate("ledId")
-      .sort({ createdAt: -1 });
+    const { page, limit } = req.query;
+
+    const parsedPage = parseInt(page) || 1;
+    const parsedLimit = parseInt(limit) || 10;
+    const skip = (parsedPage - 1) * parsedLimit;
+
+    const [crosswalks, total] = await Promise.all([
+      Crosswalk.find()
+        .populate("cameraId")
+        .populate("ledId")
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(parsedLimit),
+      Crosswalk.countDocuments(),
+    ]);
+
+    const totalPages = Math.ceil(total / parsedLimit);
 
     res.json({
       success: true,
       count: crosswalks.length,
+      total,
       data: crosswalks,
+      pagination: {
+        currentPage: parsedPage,
+        totalPages,
+        total,
+        hasMore: parsedPage * parsedLimit < total,
+      },
     });
   } catch (error) {
     next(error);

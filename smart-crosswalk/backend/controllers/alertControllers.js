@@ -13,22 +13,40 @@ const crosswalkPopulate = {
   ],
 };
 
-// GET /api/alerts - Get all alerts
+// GET /api/alerts - Get all alerts (paginated)
 export async function getAllAlerts(req, res, next) {
   try {
-    const { dangerLevel, crosswalkId } = req.query;
+    const { dangerLevel, crosswalkId, page, limit } = req.query;
     const query = {};
     if (dangerLevel) query.dangerLevel = dangerLevel;
     if (crosswalkId) query.crosswalkId = crosswalkId;
 
-    const alerts = await Alert.find(query)
-      .populate(crosswalkPopulate)
-      .sort({ timestamp: -1 });
+    const parsedPage = parseInt(page) || 1;
+    const parsedLimit = parseInt(limit) || 10;
+    const skip = (parsedPage - 1) * parsedLimit;
+
+    const [alerts, total] = await Promise.all([
+      Alert.find(query)
+        .populate(crosswalkPopulate)
+        .sort({ timestamp: -1 })
+        .skip(skip)
+        .limit(parsedLimit),
+      Alert.countDocuments(query),
+    ]);
+
+    const totalPages = Math.ceil(total / parsedLimit);
 
     res.json({
       success: true,
       count: alerts.length,
+      total,
       data: alerts,
+      pagination: {
+        currentPage: parsedPage,
+        totalPages,
+        total,
+        hasMore: parsedPage * parsedLimit < total,
+      },
     });
   } catch (error) {
     next(error);

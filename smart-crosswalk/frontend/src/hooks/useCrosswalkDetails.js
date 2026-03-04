@@ -1,12 +1,14 @@
-import { useState } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { crosswalksApi } from '../api';
 import { queryKeys } from './queryKeys';
 
+const PAGE_SIZE = 10;
+
 // Hook for the crosswalk detail page. Loads a single crosswalk, its alerts and its statistics.
 export function useCrosswalkDetails(crosswalkId) {
   const queryClient = useQueryClient();
-  
+
   // Local state for the alert filters (date range, danger level, sort order) and current page.
   const [filters, setFilters] = useState({
     dateRange: { startDate: null, endDate: null },
@@ -14,6 +16,7 @@ export function useCrosswalkDetails(crosswalkId) {
     sortBy: 'newest'
   });
   const [currentPage, setCurrentPage] = useState(1);
+  const [accumulated, setAccumulated] = useState([]);
 
   // Fetch a single crosswalk by its ID.
   // If the crosswalks list was already loaded, the data is taken from cache instantly
@@ -45,6 +48,7 @@ export function useCrosswalkDetails(crosswalkId) {
   const {
     data: alertsData = { alerts: [], pagination: { totalPages: 1, totalAlerts: 0, hasMore: false } },
     isLoading: alertsLoading,
+    isFetching: alertsFetching,
     error: alertsError,
     refetch: refetchAlerts
   } = useQuery({
@@ -55,7 +59,8 @@ export function useCrosswalkDetails(crosswalkId) {
         endDate: filters.dateRange.endDate,
         dangerLevel: filters.dangerLevel,
         sortBy: filters.sortBy,
-        page: currentPage
+        page: currentPage,
+        limit: PAGE_SIZE
       });
       return {
         alerts: response.alerts || [],
@@ -64,6 +69,25 @@ export function useCrosswalkDetails(crosswalkId) {
     },
     enabled: !!crosswalkId,
   });
+
+  // Accumulate alerts when data changes
+  useEffect(() => {
+    if (!alertsData?.alerts?.length && currentPage === 1) {
+      setAccumulated([]);
+      return;
+    }
+    if (!alertsData?.alerts) return;
+
+    if (currentPage === 1) {
+      setAccumulated(alertsData.alerts);
+    } else {
+      setAccumulated((prev) => {
+        const existingIds = new Set(prev.map((a) => a._id));
+        const newItems = alertsData.alerts.filter((a) => !existingIds.has(a._id));
+        return [...prev, ...newItems];
+      });
+    }
+  }, [alertsData, currentPage]);
 
   // Fetch statistics for this specific crosswalk (e.g. total alerts, danger breakdown).
   const {
@@ -82,7 +106,8 @@ export function useCrosswalkDetails(crosswalkId) {
   // Apply new filter values and reset to the first page.
   const updateFilters = (newFilters) => {
     setFilters({ ...filters, ...newFilters });
-    setCurrentPage(1); // Reset to page 1
+    setAccumulated([]);
+    setCurrentPage(1);
   };
 
   // Reset all filters to their default values and go back to page 1.
@@ -92,38 +117,40 @@ export function useCrosswalkDetails(crosswalkId) {
       dangerLevel: 'all',
       sortBy: 'newest'
     });
+    setAccumulated([]);
     setCurrentPage(1);
   };
 
-  // Navigate to a specific page of the alerts list.
-  const goToPage = (page) => {
-    setCurrentPage(page);
-  };
+  const hasMore = alertsData?.pagination?.hasMore ?? false;
+  const loadingMore = currentPage > 1 && alertsFetching;
+
+  const loadMore = useCallback(() => {
+    if (hasMore && !alertsFetching) {
+      setCurrentPage((p) => p + 1);
+    }
+  }, [hasMore, alertsFetching]);
 
   const loading = crosswalkLoading || alertsLoading || statsLoading;
-  
+
   // Show loading screen only if we don't have crosswalk data at all.
   // Once we have crosswalk (from cache or server), show content even if alerts/stats are loading.
   const isInitialLoading = !crosswalk && (crosswalkLoading || alertsLoading);
-  
+
   const error = crosswalkError?.message || alertsError?.message || statsError?.message || null;
 
   return {
     crosswalk,
-    alerts: alertsData.alerts,
+    alerts: accumulated,
     stats,
     filters,
     updateFilters,
     clearFilters,
-    pagination: {
-      currentPage,
-      totalPages: alertsData.pagination.totalPages,
-      totalAlerts: alertsData.pagination.totalAlerts,
-      hasMore: alertsData.pagination.hasMore
-    },
-    goToPage,
-    loading, // Full loading state (includes refetches)
-    isInitialLoading, // Only true when loading for the first time
+    totalAlerts: alertsData.pagination.totalAlerts,
+    hasMore,
+    loadMore,
+    loadingMore,
+    loading,
+    isInitialLoading,
     error,
     refetch: refetchAlerts
   };

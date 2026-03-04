@@ -23,6 +23,9 @@ export function Crosswalks() {
   const {
     crosswalks,
     loading,
+    loadingMore,
+    hasMore,
+    loadMore,
     error,
     createCrosswalk,
     updateCrosswalk,
@@ -216,6 +219,9 @@ export function Crosswalks() {
           onEdit={handleEdit}
           onDelete={handleDelete}
           onClick={handleCrosswalkClick}
+          hasMore={hasMore}
+          onLoadMore={loadMore}
+          loadingMore={loadingMore}
           emptyIcon={searchQuery ? '🔍' : '🚦'}
           emptyTitle={searchQuery ? 'No Matching Crosswalks' : 'No Crosswalks'}
           emptyMessage={searchQuery ? 'Try a different search term.' : 'Get started by adding your first crosswalk location.'}

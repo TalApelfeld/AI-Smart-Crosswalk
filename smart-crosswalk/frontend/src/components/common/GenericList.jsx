@@ -1,4 +1,4 @@
-import { Card } from '../ui';
+import { Card, Button } from '../ui';
 import { GenericDetailCard } from './GenericDetailCard';
 import { CrosswalkCard } from '../crosswalks/CrosswalkCard';
 import { AlertCard } from '../alerts/AlertCard';
@@ -34,6 +34,9 @@ const registry = {
  * @param {string} [props.emptyActionLabel] - Optional action button label in empty state
  * @param {() => void} [props.onEmptyAction] - Optional action button handler in empty state
  * @param {string} [props.className='space-y-4'] - Wrapper className for card lists
+ * @param {boolean} [props.hasMore] - Whether more items can be loaded
+ * @param {() => void} [props.onLoadMore] - Callback to load more items
+ * @param {boolean} [props.loadingMore] - Whether more items are currently loading
  *
  * All other props (onEdit, onDelete, onClick, onViewDetails, etc.) are
  * forwarded to each item component.
@@ -51,6 +54,9 @@ export function GenericList({
   emptyActionLabel,
   onEmptyAction,
   className = 'space-y-4',
+  hasMore,
+  onLoadMore,
+  loadingMore,
   ...itemProps
 }) {
   const entry = registry[type];
@@ -82,47 +88,64 @@ export function GenericList({
     );
   }
 
+  const loadMoreButton = hasMore && onLoadMore && (
+    <div className="flex justify-center pt-4">
+      <Button
+        variant="secondary"
+        onClick={onLoadMore}
+        disabled={loadingMore}
+      >
+        {loadingMore ? 'Loading...' : 'Load More'}
+      </Button>
+    </div>
+  );
+
   // Table layout
   if (isTable) {
     return (
-      <Card>
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr className="border-b border-surface-200">
-                {columns.map((col) => (
-                  <th
-                    key={col}
-                    className={`text-left py-3 px-4 text-sm font-medium text-surface-700 ${col === 'Actions' ? 'text-right' : ''}`}
-                  >
-                    {col}
-                  </th>
+      <>
+        <Card>
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-surface-200">
+                  {columns.map((col) => (
+                    <th
+                      key={col}
+                      className={`text-left py-3 px-4 text-sm font-medium text-surface-700 ${col === 'Actions' ? 'text-right' : ''}`}
+                    >
+                      {col}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-surface-100">
+                {data.map((item, index) => (
+                  <ItemComponent
+                    key={item._id || item.id}
+                    item={item}
+                    index={index}
+                    {...itemProps}
+                  />
                 ))}
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-surface-100">
-              {data.map((item) => (
-                <ItemComponent
-                  key={item._id || item.id}
-                  item={item}
-                  {...itemProps}
-                />
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </Card>
+              </tbody>
+            </table>
+          </div>
+        </Card>
+        {loadMoreButton}
+      </>
     );
   }
 
   // Card layout
   return (
     <div className={className}>
-      {data.map((item) => (
+      {data.map((item, index) => (
         <div key={item._id || item.id}>
-          <ItemComponent item={item} {...itemProps} />
+          <ItemComponent item={item} index={index} {...itemProps} />
         </div>
       ))}
+      {loadMoreButton}
     </div>
   );
 }

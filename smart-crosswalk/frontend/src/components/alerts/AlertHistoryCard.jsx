@@ -18,21 +18,22 @@ import {
  * @param {object} props.item
  * @param {(item: object) => void} [props.onViewDetails]
  */
-function AlertHistoryCardComponent({ item, onViewDetails }) {
+function AlertHistoryCardComponent({ item, index, onViewDetails }) {
   const dl = formatDangerLevel(item.dangerLevel);
+  const indexLabel = index != null ? `#${index + 1} ` : '';
 
   return (
     <GenericDetailCard
       className={`border-l-4 ${dl.border}`}
       header={{
         icon: dl.icon,
-        title: `${dl.label} Danger Alert`,
+        title: `${indexLabel}${dl.label} Danger Alert`,
         subtitle: item.crosswalkId?.location
           ? formatLocation(item.crosswalkId.location)
           : formatDate(item.timestamp),
       }}
       image={{
-        url: getImageUrl(item.imageUrl?.url),
+        url: getImageUrl(item.imageUrl),
         alt: 'Detection',
         fallbackIcon: '📷',
       }}
@@ -54,9 +55,9 @@ function AlertHistoryCardComponent({ item, onViewDetails }) {
           label: 'View Details',
           onClick: () => onViewDetails(item),
         },
-        item.imageUrl?.url && {
+        item.imageUrl && {
           label: 'Download Image',
-          href: getImageUrl(item.imageUrl.url),
+          href: getImageUrl(item.imageUrl),
           target: '_blank',
           rel: 'noopener noreferrer',
           variant: 'secondary',

@@ -8,11 +8,13 @@
 export const queryKeys = {
   alerts: {
     all: ["alerts"],
+    list: (page) => ["alerts", "list", page],
     stats: ["alerts-stats"],
   },
 
   crosswalks: {
     all: ["crosswalks"],
+    list: (page) => ["crosswalks", "list", page],
     stats: ["crosswalks-stats"],
     detail: (id) => ["crosswalk", id],
     alerts: (id, filters, page) => ["crosswalk-alerts", id, filters, page],

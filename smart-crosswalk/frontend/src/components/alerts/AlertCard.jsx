@@ -18,21 +18,22 @@ import {
  * @param {(item: object) => void} [props.onEdit]
  * @param {(item: object) => void} [props.onDelete]
  */
-function AlertCardComponent({ item, onEdit, onDelete }) {
+function AlertCardComponent({ item, index, onEdit, onDelete }) {
   const dl = formatDangerLevel(item.dangerLevel);
+  const indexLabel = index != null ? `#${index + 1} ` : '';
 
   return (
     <GenericDetailCard
       className={`border-l-4 ${dl.border}`}
       header={{
         icon: dl.icon,
-        title: `${dl.label} Danger Alert`,
+        title: `${indexLabel}${dl.label} Danger Alert`,
         subtitle: item.crosswalkId?.location
           ? formatLocation(item.crosswalkId.location)
           : undefined,
       }}
       image={{
-        url: getImageUrl(item.imageUrl?.url),
+        url: getImageUrl(item.imageUrl),
         alt: 'Detection',
         fallbackIcon: '📷',
       }}

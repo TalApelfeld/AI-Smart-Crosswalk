@@ -9,7 +9,6 @@ import {
   LoadingScreen,
   DateRangePicker,
   Select,
-  Pagination,
   PageHeader,
   Badge,
 } from '../components/ui';
@@ -36,8 +35,10 @@ export function CrosswalkDetailsPage() {
     filters,
     updateFilters,
     clearFilters,
-    pagination,
-    goToPage,
+    totalAlerts,
+    hasMore,
+    loadMore,
+    loadingMore,
     loading,
     isInitialLoading,
     error,
@@ -105,8 +106,8 @@ export function CrosswalkDetailsPage() {
       <PageHeader
         title="Events History"
         actions={
-          pagination.totalAlerts > 0 ? (
-            <Badge variant="default">{pagination.totalAlerts} total</Badge>
+          totalAlerts > 0 ? (
+            <Badge variant="default">{totalAlerts} total</Badge>
           ) : null
         }
       />
@@ -150,18 +151,14 @@ export function CrosswalkDetailsPage() {
       <GenericList
         type="alert-history"
         data={alerts}
+        hasMore={hasMore}
+        onLoadMore={loadMore}
+        loadingMore={loadingMore}
         emptyIcon="📭"
         emptyTitle="No Events Found"
         emptyMessage={hasActiveFilters
           ? 'Try adjusting your filters to see more results.'
           : 'No alerts have been recorded for this crosswalk yet.'}
-      />
-
-      <Pagination
-        currentPage={pagination.currentPage}
-        totalPages={pagination.totalPages}
-        hasMore={pagination.hasMore}
-        onPageChange={goToPage}
       />
     </div>
   );

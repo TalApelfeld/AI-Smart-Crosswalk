@@ -27,6 +27,9 @@ export function Alerts() {
     alerts,
     stats,
     loading,
+    loadingMore,
+    hasMore,
+    loadMore,
     error,
     updateAlert,
     deleteAlert,
@@ -195,6 +198,9 @@ export function Alerts() {
           data={filteredAlerts}
           onEdit={handleEdit}
           onDelete={handleDelete}
+          hasMore={hasMore}
+          onLoadMore={loadMore}
+          loadingMore={loadingMore}
           emptyIcon={alerts.length === 0 ? '🚨' : '🔍'}
           emptyTitle={alerts.length === 0 ? 'No Alerts' : 'No Matching Alerts'}
           emptyMessage={alerts.length === 0
